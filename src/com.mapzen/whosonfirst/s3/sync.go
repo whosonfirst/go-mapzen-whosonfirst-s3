@@ -74,7 +74,6 @@ func (sink Sync) SyncDirectory(root string) error {
 func (sink Sync) SyncFile(source string, dest string) error {
 
 	sink.Files++
-	// check to see if source changed...
 
 	body, err := ioutil.ReadFile(source)
 

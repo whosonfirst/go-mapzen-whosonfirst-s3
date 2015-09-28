@@ -2,7 +2,7 @@ deps:
 	go get "github.com/whosonfirst/go-mapzen-whosonfirst-crawl/"
 	go get "github.com/goamz/goamz"
 
-sync:
+sync: 
 	go build -o bin/sync bin/sync.go
 
 fmt:
