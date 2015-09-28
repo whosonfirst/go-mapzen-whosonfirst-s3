@@ -4,4 +4,6 @@
 
 ## Caveats
 
-I still haven't entirely worked my head around the "correct" way to organize source files in Go repos so objects may still shift in transit, so to speak.
+* This exhausts file handles (so it's not terribly useful right now...)
+
+* I still haven't entirely worked my head around the "correct" way to organize source files in Go repos so objects may still shift in transit, so to speak.
