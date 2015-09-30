@@ -10,30 +10,28 @@ import (
 	"fmt"
 	"github.com/goamz/goamz/aws"
 	"github.com/goamz/goamz/s3"
+	"github.com/jeffail/tunny"
 	"github.com/whosonfirst/go-mapzen-whosonfirst-crawl/src/com.mapzen/whosonfirst"
 	"io/ioutil"
 	"os"
-	"strings"
-	"github.com/jeffail/tunny"
 	"runtime"
+	"strings"
+	"time"
 )
 
 type Sync struct {
 	ACL    s3.ACL
 	Bucket s3.Bucket
-	Files  int64
-	Ok     int64
-	Error  int64
 	Pool   tunny.WorkPool
+	Log    chan string
 }
 
-func New(auth aws.Auth, region aws.Region, acl s3.ACL, bucket string) *Sync {
+func New(auth aws.Auth, region aws.Region, acl s3.ACL, bucket string, log chan string) *Sync {
 
-     	numCPUs := runtime.NumCPU()
-        runtime.GOMAXPROCS(numCPUs)
+	numCPUs := runtime.NumCPU() * 2
+	runtime.GOMAXPROCS(numCPUs)
 
 	p, _ := tunny.CreatePoolGeneric(numCPUs).Open()
-	defer p.Close()
 
 	s := s3.New(auth, region)
 	b := s.Bucket(bucket)
@@ -41,74 +39,108 @@ func New(auth aws.Auth, region aws.Region, acl s3.ACL, bucket string) *Sync {
 	return &Sync{
 		ACL:    acl,
 		Bucket: *b,
-		Pool: *p,
-		Files:  0,
-		Ok:     0,
-		Error:  0,
+		Pool:   *p,
+		Log:    log,
 	}
 }
 
-func WhosOnFirst(auth aws.Auth, bucket string) *Sync {
+func WhosOnFirst(auth aws.Auth, bucket string, log chan string) *Sync {
 
-	return New(auth, aws.USEast, s3.PublicRead, bucket)
+	return New(auth, aws.USEast, s3.PublicRead, bucket, log)
 }
 
 func (sink Sync) SyncDirectory(root string) error {
 
+	defer sink.Pool.Close()
+
+	var files int64
+	var success int64
+	var failed int64
+
+	t0 := time.Now()
+
 	callback := func(path string, info os.FileInfo) error {
+
+		// sink.LogMessage(fmt.Sprintf("crawling %s", path))
 
 		if info.IsDir() {
 			return nil
 		}
 
+		files++
+
 		source := path
 		dest := source
 
 		dest = strings.Replace(dest, root, "", -1)
-
 		err := sink.SyncFile(source, dest)
 
 		if err != nil {
-			return err
+			failed++
+			return nil // don't stop believing
 		}
 
+		success++
 		return nil
 	}
 
 	c := whosonfirst.NewCrawler(root)
 	_ = c.Crawl(callback)
 
+	t1 := float64(time.Since(t0)) / 1e9
+
+	msg := fmt.Sprintf("processed %d files (ok: %d error: %d) in %.3f seconds\n", files, success, failed, t1)
+	sink.LogMessage(msg)
+
 	return nil
 }
 
 func (sink Sync) SyncFile(source string, dest string) error {
 
-	sink.Files++
+	// sink.LogMessage(fmt.Sprintf("sync file %s", source))
 
 	body, err := ioutil.ReadFile(source)
 
 	if err != nil {
-		sink.Error++
+		sink.LogMessage("OMGWTF")
 		return err
 	}
 
-	fmt.Printf("sync %s to %s\n", source, dest)
+	_, err = sink.Pool.SendWork(func() {
 
-	_, err = sink.Pool.SendWork(func(){
-
-		fmt.Printf("send to %s w/ %s", dest, sink.ACL)
+		sink.LogMessage(fmt.Sprintf("PUT %s as %s", dest, sink.ACL))
 
 		o := s3.Options{}
 
 		err := sink.Bucket.Put(dest, body, "text/plain", sink.ACL, o)
 
 		if err != nil {
-		   sink.Error++
-		   fmt.Printf("%s\n", err)
+			sink.LogMessage(fmt.Sprintf("failed to PUT %s, because '%s'", dest, err))
 		}
+	})
 
-	        sink.Ok++
-        })
+	if err != nil {
+		sink.LogMessage(fmt.Sprintf("failed to schedule %s for processing, because '%s'", source, err))
+		return err
+	}
 
+	// sink.LogMessage(fmt.Sprintf("scheduled %s for processing", source))
 	return nil
+}
+
+// clearly I need to internalize this a bit more
+// (20150930/thisisaaronland)
+// https://talks.golang.org/2012/waza.slide
+
+func (sink Sync) LogMessage(msg string) {
+
+	fmt.Println(msg)
+
+	/*
+	   logger := func(ch chan string, txt string){
+	   	    ch <- txt
+	   }
+
+	   go logger(sink.Log, msg)
+	*/
 }

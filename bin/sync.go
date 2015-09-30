@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/goamz/goamz/aws"
 	"os"
+	_ "sync"
 )
 
 func main() {
@@ -40,11 +41,21 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Printf("sync to %s%s\n", *root, *bucket)
+	// sudo figure out how to put all of the log
+	// channel stuff into the Sync object itself
+	// (20150930/thisisaaronland)
 
-	sink := sync.WhosOnFirst(auth, *bucket)
+	log := make(chan string)
+
+	cb := func(cs chan string) {
+		s := <-cs
+		fmt.Println(s)
+	}
+
+	go cb(log)
+
+	sink := sync.WhosOnFirst(auth, *bucket, log)
 	err = sink.SyncDirectory(*root)
 
-	fmt.Printf("files:%d okay:%d error:%d", sink.Files, sink.Ok, sink.Error)
-
+	close(log)
 }
