@@ -14,6 +14,8 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
+	"github.com/jeffail/tunny"
+	"runtime"
 )
 
 type Sync struct {
@@ -22,9 +24,16 @@ type Sync struct {
 	Files  int64
 	Ok     int64
 	Error  int64
+	Pool   tunny.WorkPool
 }
 
 func New(auth aws.Auth, region aws.Region, acl s3.ACL, bucket string) *Sync {
+
+     	numCPUs := runtime.NumCPU()
+        runtime.GOMAXPROCS(numCPUs)
+
+	p, _ := tunny.CreatePoolGeneric(numCPUs).Open()
+	defer p.Close()
 
 	s := s3.New(auth, region)
 	b := s.Bucket(bucket)
@@ -32,6 +41,7 @@ func New(auth aws.Auth, region aws.Region, acl s3.ACL, bucket string) *Sync {
 	return &Sync{
 		ACL:    acl,
 		Bucket: *b,
+		Pool: *p,
 		Files:  0,
 		Ok:     0,
 		Error:  0,
@@ -84,21 +94,21 @@ func (sink Sync) SyncFile(source string, dest string) error {
 
 	fmt.Printf("sync %s to %s\n", source, dest)
 
-	go put(sink, dest, body, "text/plain", sink.ACL)
+	_, err = sink.Pool.SendWork(func(){
+
+		fmt.Printf("send to %s w/ %s", dest, sink.ACL)
+
+		o := s3.Options{}
+
+		err := sink.Bucket.Put(dest, body, "text/plain", sink.ACL, o)
+
+		if err != nil {
+		   sink.Error++
+		   fmt.Printf("%s\n", err)
+		}
+
+	        sink.Ok++
+        })
 
 	return nil
-}
-
-func put(sink Sync, dest string, body []byte, content_type string, acl s3.ACL) {
-
-	o := s3.Options{}
-
-	err := sink.Bucket.Put(dest, body, content_type, acl, o)
-
-	if err != nil {
-		sink.Error++
-		fmt.Printf("%s\n", err)
-	}
-
-	sink.Ok++
 }
