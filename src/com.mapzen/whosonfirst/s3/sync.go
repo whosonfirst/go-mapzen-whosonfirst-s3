@@ -7,12 +7,15 @@ package whosonfirst
 // https://github.com/goamz/goamz/blob/master/s3/s3.go
 
 import (
+        "crypto/md5"
+	enc "encoding/hex"
 	"fmt"
 	"github.com/goamz/goamz/aws"
 	"github.com/goamz/goamz/s3"
 	"github.com/jeffail/tunny"
 	"github.com/whosonfirst/go-mapzen-whosonfirst-crawl/src/com.mapzen/whosonfirst"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"runtime"
 	"strings"
@@ -106,9 +109,23 @@ func (sink Sync) SyncFile(source string, dest string) error {
 		return err
 	}
 
+	hash := md5.Sum(body)
+	hex := enc.EncodeToString(hash[:])
+
 	_, err = sink.Pool.SendWork(func() {
 
 		sink.LogMessage(fmt.Sprintf("PUT %s as %s", dest, sink.ACL))
+
+		headers := make(http.Header)
+		rsp, _ := sink.Bucket.Head(dest, headers)
+
+		etag := rsp.Header.Get("Etag")
+		etag = strings.Replace(etag, "\"", "", -1)
+
+		if etag == hex  {
+		   sink.LogMessage(fmt.Sprintf("SKIP %s because it is unchanged", dest))
+		   return
+		} 
 
 		o := s3.Options{}
 
