@@ -57,7 +57,6 @@ func (sink Sync) SyncDirectory(root string) error {
 	defer sink.Pool.Close()
 
 	var files int64
-	var success int64
 	var failed int64
 
 	t0 := time.Now()
@@ -76,14 +75,28 @@ func (sink Sync) SyncDirectory(root string) error {
 		dest := source
 
 		dest = strings.Replace(dest, root, "", -1)
-		err := sink.SyncFile(source, dest)
 
-		if err != nil {
-			failed++
-			return nil // don't stop believing
+		// Note: both HasChanged and SyncFile will ioutil.ReadFile(source)
+		// which is a potential waste of time and resource. Or maybe we just
+		// don't care? (20150930/thisisaaronland)
+
+		change, ch_err := sink.HasChanged(source, dest)
+
+		if ch_err != nil {
+		   sink.LogMessage(fmt.Sprintf("failed to determine whether %s had changed, because '%s'", source, ch_err))
+		   change = true
 		}
 
-		success++
+		if change {
+
+			s_err := sink.SyncFile(source, dest)
+
+			if s_err != nil {
+			   sink.LogMessage(fmt.Sprintf("failed to PUT %s, because '%s'", dest, s_err))
+			   failed++
+			}
+                }
+		
 		return nil
 	}
 
@@ -92,7 +105,7 @@ func (sink Sync) SyncDirectory(root string) error {
 
 	t1 := float64(time.Since(t0)) / 1e9
 
-	msg := fmt.Sprintf("processed %d files (ok: %d error: %d) in %.3f seconds\n", files, success, failed, t1)
+	msg := fmt.Sprintf("processed %d files (error: %d) in %.3f seconds\n", files, failed, t1)
 	sink.LogMessage(msg)
 
 	return nil
@@ -109,23 +122,9 @@ func (sink Sync) SyncFile(source string, dest string) error {
 		return err
 	}
 
-	hash := md5.Sum(body)
-	hex := enc.EncodeToString(hash[:])
-
 	_, err = sink.Pool.SendWork(func() {
-
+		
 		sink.LogMessage(fmt.Sprintf("PUT %s as %s", dest, sink.ACL))
-
-		headers := make(http.Header)
-		rsp, _ := sink.Bucket.Head(dest, headers)
-
-		etag := rsp.Header.Get("Etag")
-		etag = strings.Replace(etag, "\"", "", -1)
-
-		if etag == hex  {
-		   sink.LogMessage(fmt.Sprintf("SKIP %s because it is unchanged", dest))
-		   return
-		} 
 
 		o := s3.Options{}
 
@@ -134,6 +133,7 @@ func (sink Sync) SyncFile(source string, dest string) error {
 		if err != nil {
 			sink.LogMessage(fmt.Sprintf("failed to PUT %s, because '%s'", dest, err))
 		}
+
 	})
 
 	if err != nil {
@@ -143,6 +143,43 @@ func (sink Sync) SyncFile(source string, dest string) error {
 
 	// sink.LogMessage(fmt.Sprintf("scheduled %s for processing", source))
 	return nil
+}
+
+// the following appears to trigger a freak-out-and-die condition... sometimes
+// I have no idea why... test under go 1.2.1, 1.4.3 and 1.5.1 / see also:
+// https://github.com/whosonfirst/go-mapzen-whosonfirst-s3/issues/2
+// (2015/thisisaaronland)
+
+func (sink Sync) HasChanged(source string, dest string) (ch bool, err error) {
+
+     change := true
+
+	body, err := ioutil.ReadFile(source)
+
+	if err != nil {
+	   return change, err
+	}
+
+	hash := md5.Sum(body)
+	local_hash := enc.EncodeToString(hash[:])
+
+	headers := make(http.Header)
+	rsp, err := sink.Bucket.Head(dest, headers)
+
+	if err != nil {
+	   return change, err
+	}
+
+	etag := rsp.Header.Get("Etag")
+	remote_hash := strings.Replace(etag, "\"", "", -1)
+
+	if local_hash == remote_hash {
+	  change = false
+	}
+
+	// sink.LogMessage(fmt.Sprintf("local: %s remote: %s change: %v", local_hash, remote_hash. change))
+
+	return change, nil
 }
 
 // clearly I need to internalize this a bit more
