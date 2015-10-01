@@ -7,7 +7,7 @@ package whosonfirst
 // https://github.com/goamz/goamz/blob/master/s3/s3.go
 
 import (
-        "crypto/md5"
+	"crypto/md5"
 	enc "encoding/hex"
 	"fmt"
 	"github.com/goamz/goamz/aws"
@@ -83,8 +83,8 @@ func (sink Sync) SyncDirectory(root string) error {
 		change, ch_err := sink.HasChanged(source, dest)
 
 		if ch_err != nil {
-		   sink.LogMessage(fmt.Sprintf("failed to determine whether %s had changed, because '%s'", source, ch_err))
-		   change = true
+			sink.LogMessage(fmt.Sprintf("failed to determine whether %s had changed, because '%s'", source, ch_err))
+			change = true
 		}
 
 		if change {
@@ -92,11 +92,11 @@ func (sink Sync) SyncDirectory(root string) error {
 			s_err := sink.SyncFile(source, dest)
 
 			if s_err != nil {
-			   sink.LogMessage(fmt.Sprintf("failed to PUT %s, because '%s'", dest, s_err))
-			   failed++
+				sink.LogMessage(fmt.Sprintf("failed to PUT %s, because '%s'", dest, s_err))
+				failed++
 			}
-                }
-		
+		}
+
 		return nil
 	}
 
@@ -123,7 +123,7 @@ func (sink Sync) SyncFile(source string, dest string) error {
 	}
 
 	_, err = sink.Pool.SendWork(func() {
-		
+
 		sink.LogMessage(fmt.Sprintf("PUT %s as %s", dest, sink.ACL))
 
 		o := s3.Options{}
@@ -152,12 +152,12 @@ func (sink Sync) SyncFile(source string, dest string) error {
 
 func (sink Sync) HasChanged(source string, dest string) (ch bool, err error) {
 
-     change := true
+	change := true
 
 	body, err := ioutil.ReadFile(source)
 
 	if err != nil {
-	   return change, err
+		return change, err
 	}
 
 	hash := md5.Sum(body)
@@ -167,14 +167,14 @@ func (sink Sync) HasChanged(source string, dest string) (ch bool, err error) {
 	rsp, err := sink.Bucket.Head(dest, headers)
 
 	if err != nil {
-	   return change, err
+		return change, err
 	}
 
 	etag := rsp.Header.Get("Etag")
 	remote_hash := strings.Replace(etag, "\"", "", -1)
 
 	if local_hash == remote_hash {
-	  change = false
+		change = false
 	}
 
 	// sink.LogMessage(fmt.Sprintf("local: %s remote: %s change: %v", local_hash, remote_hash. change))
