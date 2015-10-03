@@ -1,7 +1,7 @@
 package main
 
 import (
-	sync "com.mapzen/whosonfirst/s3"
+	sync "github.com/whosonfirst/go-whosonfirst-s3/whosonfirst/s3"
 	"flag"
 	"fmt"
 	"github.com/goamz/goamz/aws"
