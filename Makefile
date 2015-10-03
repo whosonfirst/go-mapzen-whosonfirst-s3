@@ -1,10 +1,11 @@
 deps:
 	go get -u "github.com/whosonfirst/go-whosonfirst-crawl/whosonfirst"
+	go get -u "github.com/whosonfirst/go-whosonfirst-s3/whosonfirst/s3"
 	go get -u "github.com/goamz/goamz/aws"
 	go get -u "github.com/goamz/goamz/s3"
 	go get -u "github.com/jeffail/tunny"
 
-sync: 
+sync: 	deps
 	go build -o bin/sync bin/sync.go
 
 fmt:
