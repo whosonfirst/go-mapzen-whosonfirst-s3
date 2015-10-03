@@ -13,7 +13,7 @@ import (
 	"github.com/goamz/goamz/aws"
 	"github.com/goamz/goamz/s3"
 	"github.com/jeffail/tunny"
-	"github.com/whosonfirst/go-mapzen-whosonfirst-crawl/src/com.mapzen/whosonfirst"
+	crawl "github.com/whosonfirst/go-whosonfirst-crawl/whosonfirst"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -100,7 +100,7 @@ func (sink Sync) SyncDirectory(root string) error {
 		return nil
 	}
 
-	c := whosonfirst.NewCrawler(root)
+	c := crawl.NewCrawler(root)
 	_ = c.Crawl(callback)
 
 	t1 := float64(time.Since(t0)) / 1e9
