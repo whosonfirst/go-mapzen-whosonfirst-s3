@@ -9,9 +9,12 @@ deps: 	self
 	go get -u "github.com/goamz/goamz/s3"
 	go get -u "github.com/jeffail/tunny"
 
-sync: 	self
+prep:	self
+	rm -rf ./pkg/*
+
+sync: 	prep
 	go build -o bin/wof-sync bin/wof-sync.go
 
 fmt:
-	go fmt whosonfirst/s3/sync.go 
-	go fmt bin/sync.go 
+	go fmt whosonfirst/s3/*.go 
+	go fmt bin/*.go

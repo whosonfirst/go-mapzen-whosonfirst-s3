@@ -1,10 +1,10 @@
 package main
 
 import (
-	sync "github.com/whosonfirst/go-whosonfirst-s3/whosonfirst/s3"
 	"flag"
 	"fmt"
 	"github.com/goamz/goamz/aws"
+	sync "github.com/whosonfirst/go-whosonfirst-s3/whosonfirst/s3"
 	"os"
 	_ "sync"
 )
@@ -13,6 +13,8 @@ func main() {
 
 	var root = flag.String("root", "", "The directory to sync")
 	var bucket = flag.String("bucket", "", "The S3 bucket to sync <root> to")
+	var prefix = flag.String("prefix", "", "A prefix inside your S3 bucket where things go")
+	var debug = flag.Bool("debug", false, "Don't actually try to sync anything and spew a lot of line noise")
 	var credentials = flag.String("credentials", "", "Your S3 credentials file")
 
 	flag.Parse()
@@ -54,8 +56,8 @@ func main() {
 
 	go cb(log)
 
-	sink := sync.WhosOnFirst(auth, *bucket, log)
-	err = sink.SyncDirectory(*root)
+	sink := sync.WhosOnFirst(auth, *bucket, *prefix, log)
+	err = sink.SyncDirectory(*root, *debug)
 
 	close(log)
 }

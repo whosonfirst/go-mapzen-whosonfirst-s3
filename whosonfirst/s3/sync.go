@@ -17,6 +17,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"path"
 	"runtime"
 	"strings"
 	"time"
@@ -25,16 +26,17 @@ import (
 type Sync struct {
 	ACL    s3.ACL
 	Bucket s3.Bucket
+	Prefix string
 	Pool   tunny.WorkPool
 	Log    chan string
 }
 
-func New(auth aws.Auth, region aws.Region, acl s3.ACL, bucket string, log chan string) *Sync {
+func New(auth aws.Auth, region aws.Region, acl s3.ACL, bucket string, prefix string, log chan string) *Sync {
 
 	numCPUs := runtime.NumCPU() * 2
 	runtime.GOMAXPROCS(numCPUs)
 
-	p, _ := tunny.CreatePoolGeneric(numCPUs).Open()
+	pool, _ := tunny.CreatePoolGeneric(numCPUs).Open()
 
 	s := s3.New(auth, region)
 	b := s.Bucket(bucket)
@@ -42,17 +44,18 @@ func New(auth aws.Auth, region aws.Region, acl s3.ACL, bucket string, log chan s
 	return &Sync{
 		ACL:    acl,
 		Bucket: *b,
-		Pool:   *p,
+		Prefix: prefix,
+		Pool:   *pool,
 		Log:    log,
 	}
 }
 
-func WhosOnFirst(auth aws.Auth, bucket string, log chan string) *Sync {
+func WhosOnFirst(auth aws.Auth, bucket string, prefix string, log chan string) *Sync {
 
-	return New(auth, aws.USEast, s3.PublicRead, bucket, log)
+	return New(auth, aws.USEast, s3.PublicRead, bucket, prefix, log)
 }
 
-func (sink Sync) SyncDirectory(root string) error {
+func (sink Sync) SyncDirectory(root string, debug bool) error {
 
 	defer sink.Pool.Close()
 
@@ -61,9 +64,9 @@ func (sink Sync) SyncDirectory(root string) error {
 
 	t0 := time.Now()
 
-	callback := func(path string, info os.FileInfo) error {
+	callback := func(src string, info os.FileInfo) error {
 
-		// sink.LogMessage(fmt.Sprintf("crawling %s", path))
+		// sink.LogMessage(fmt.Sprintf("crawling %s", src))
 
 		if info.IsDir() {
 			return nil
@@ -71,14 +74,20 @@ func (sink Sync) SyncDirectory(root string) error {
 
 		files++
 
-		source := path
+		source := src
 		dest := source
 
 		dest = strings.Replace(dest, root, "", -1)
 
+		if sink.Prefix != "" {
+			dest = path.Join(sink.Prefix, dest)
+		}
+
 		// Note: both HasChanged and SyncFile will ioutil.ReadFile(source)
 		// which is a potential waste of time and resource. Or maybe we just
 		// don't care? (20150930/thisisaaronland)
+
+		sink.LogMessage(fmt.Sprintf("LOOKING FOR %s (%s)", dest, sink.Prefix))
 
 		change, ch_err := sink.HasChanged(source, dest)
 
@@ -87,7 +96,9 @@ func (sink Sync) SyncDirectory(root string) error {
 			change = true
 		}
 
-		if change {
+		if debug == true {
+			sink.LogMessage(fmt.Sprintf("has %s changed? the answer is %v but does it really matter since debugging is enabled?", source, change))
+		} else if change {
 
 			s_err := sink.SyncFile(source, dest)
 
@@ -95,6 +106,8 @@ func (sink Sync) SyncDirectory(root string) error {
 				sink.LogMessage(fmt.Sprintf("failed to PUT %s, because '%s'", dest, s_err))
 				failed++
 			}
+		} else {
+			// pass
 		}
 
 		return nil
