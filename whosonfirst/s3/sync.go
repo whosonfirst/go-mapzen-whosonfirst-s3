@@ -180,6 +180,7 @@ func (sink Sync) HasChanged(source string, dest string) (ch bool, err error) {
 	rsp, err := sink.Bucket.Head(dest, headers)
 
 	if err != nil {
+	        sink.LogMessage(fmt.Sprintf("failed to HEAD %s because %s", dest, err))
 		return change, err
 	}
 
@@ -190,7 +191,7 @@ func (sink Sync) HasChanged(source string, dest string) (ch bool, err error) {
 		change = false
 	}
 
-	// sink.LogMessage(fmt.Sprintf("local: %s remote: %s change: %v", local_hash, remote_hash. change))
+	// sink.LogMessage(fmt.Sprintf("%s local: %s remote: %s change: %v", dest, local_hash, remote_hash, change))
 
 	return change, nil
 }
