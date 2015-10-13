@@ -13,7 +13,7 @@ import (
 	"github.com/goamz/goamz/aws"
 	"github.com/goamz/goamz/s3"
 	"github.com/jeffail/tunny"
-	crawl "github.com/whosonfirst/go-whosonfirst-crawl/whosonfirst"
+	"github.com/whosonfirst/go-whosonfirst-crawl"
 	"io/ioutil"
 	"net/http"
 	"os"
