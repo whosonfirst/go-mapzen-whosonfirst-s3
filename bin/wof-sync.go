@@ -4,9 +4,8 @@ import (
 	"flag"
 	"fmt"
 	"github.com/goamz/goamz/aws"
-	sync "github.com/whosonfirst/go-whosonfirst-s3/whosonfirst/s3"
+	"github.com/whosonfirst/go-whosonfirst-s3"
 	"os"
-	_ "sync"
 )
 
 func main() {
@@ -56,8 +55,8 @@ func main() {
 
 	go cb(log)
 
-	sink := sync.WhosOnFirst(auth, *bucket, *prefix, log)
-	err = sink.SyncDirectory(*root, *debug)
+	s := s3.WOFSync(auth, *bucket, *prefix, log)
+	err = s.SyncDirectory(*root, *debug)
 
 	close(log)
 }

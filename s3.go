@@ -1,4 +1,4 @@
-package whosonfirst
+package s3
 
 // https://github.com/aws/aws-sdk-go
 // https://docs.aws.amazon.com/sdk-for-go/api/service/s3.html
@@ -11,7 +11,7 @@ import (
 	enc "encoding/hex"
 	"fmt"
 	"github.com/goamz/goamz/aws"
-	"github.com/goamz/goamz/s3"
+	aws_s3 "github.com/goamz/goamz/s3"
 	"github.com/jeffail/tunny"
 	"github.com/whosonfirst/go-whosonfirst-crawl"
 	"io/ioutil"
@@ -24,21 +24,21 @@ import (
 )
 
 type Sync struct {
-	ACL    s3.ACL
-	Bucket s3.Bucket
+	ACL    aws_s3.ACL
+	Bucket aws_s3.Bucket
 	Prefix string
 	Pool   tunny.WorkPool
 	Log    chan string
 }
 
-func New(auth aws.Auth, region aws.Region, acl s3.ACL, bucket string, prefix string, log chan string) *Sync {
+func NewSync(auth aws.Auth, region aws.Region, acl aws_s3.ACL, bucket string, prefix string, log chan string) *Sync {
 
 	numCPUs := runtime.NumCPU() * 2
 	runtime.GOMAXPROCS(numCPUs)
 
 	pool, _ := tunny.CreatePoolGeneric(numCPUs).Open()
 
-	s := s3.New(auth, region)
+	s := aws_s3.New(auth, region)
 	b := s.Bucket(bucket)
 
 	return &Sync{
@@ -50,9 +50,9 @@ func New(auth aws.Auth, region aws.Region, acl s3.ACL, bucket string, prefix str
 	}
 }
 
-func WhosOnFirst(auth aws.Auth, bucket string, prefix string, log chan string) *Sync {
+func WOFSync(auth aws.Auth, bucket string, prefix string, log chan string) *Sync {
 
-	return New(auth, aws.USEast, s3.PublicRead, bucket, prefix, log)
+	return NewSync(auth, aws.USEast, aws_s3.PublicRead, bucket, prefix, log)
 }
 
 func (sink Sync) SyncDirectory(root string, debug bool) error {
@@ -139,7 +139,7 @@ func (sink Sync) SyncFile(source string, dest string) error {
 
 		sink.LogMessage(fmt.Sprintf("PUT %s as %s", dest, sink.ACL))
 
-		o := s3.Options{}
+		o := aws_s3.Options{}
 
 		err := sink.Bucket.Put(dest, body, "text/plain", sink.ACL, o)
 
