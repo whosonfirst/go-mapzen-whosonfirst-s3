@@ -4,4 +4,8 @@
 
 ## Caveats
 
-* I still haven't entirely worked my head around the "correct" way to organize source files in Go repos so objects may still shift in transit, so to speak.
+* I still haven't entirely worked my head around the "correct" way to organize source files in Go repos so objects may still shift in transit, so to speak. Also this may (probably) be renamed `go-whosonfirst-sync` since that's really what this package is about and it is not any kind of general-purpose AWS/S3 library.
+
+## See also
+
+* https://github.com/whosonfirst/go-whosonfirst-clone
