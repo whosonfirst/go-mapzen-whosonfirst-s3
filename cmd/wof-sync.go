@@ -17,7 +17,7 @@ func main() {
 	var prefix = flag.String("prefix", "", "A prefix inside your S3 bucket where things go")
 	var debug = flag.Bool("debug", false, "Don't actually try to sync anything and spew a lot of line noise")
 	var credentials = flag.String("credentials", "", "Your S3 credentials file")
-	var procs = flag.Int("processes", (runtime.NumCPU() * 2), "The number of simultaneous processes to sync data with")
+	var procs = flag.Int("processes", (runtime.NumCPU() * 2), "The number of concurrent processes to sync data with")
 	var loglevel = flag.String("loglevel", "info", "Log level for reporting")
 
 	flag.Parse()
