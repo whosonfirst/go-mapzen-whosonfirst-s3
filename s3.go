@@ -9,11 +9,11 @@ package s3
 import (
 	"crypto/md5"
 	enc "encoding/hex"
-	"fmt"
 	"github.com/goamz/goamz/aws"
 	aws_s3 "github.com/goamz/goamz/s3"
 	"github.com/jeffail/tunny"
 	"github.com/whosonfirst/go-whosonfirst-crawl"
+	log "github.com/whosonfirst/go-whosonfirst-log"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -28,15 +28,14 @@ type Sync struct {
 	Bucket aws_s3.Bucket
 	Prefix string
 	Pool   tunny.WorkPool
-	Log    chan string
+	Logger *log.WOFLogger
 }
 
-func NewSync(auth aws.Auth, region aws.Region, acl aws_s3.ACL, bucket string, prefix string, log chan string) *Sync {
+func NewSync(auth aws.Auth, region aws.Region, acl aws_s3.ACL, bucket string, prefix string, procs int, logger *log.WOFLogger) *Sync {
 
-	numCPUs := runtime.NumCPU() * 2
-	runtime.GOMAXPROCS(numCPUs)
+	runtime.GOMAXPROCS(procs)
 
-	pool, _ := tunny.CreatePoolGeneric(numCPUs).Open()
+	pool, _ := tunny.CreatePoolGeneric(procs).Open()
 
 	s := aws_s3.New(auth, region)
 	b := s.Bucket(bucket)
@@ -46,13 +45,13 @@ func NewSync(auth aws.Auth, region aws.Region, acl aws_s3.ACL, bucket string, pr
 		Bucket: *b,
 		Prefix: prefix,
 		Pool:   *pool,
-		Log:    log,
+		Logger: logger,
 	}
 }
 
-func WOFSync(auth aws.Auth, bucket string, prefix string, log chan string) *Sync {
+func WOFSync(auth aws.Auth, bucket string, prefix string, procs int, logger *log.WOFLogger) *Sync {
 
-	return NewSync(auth, aws.USEast, aws_s3.PublicRead, bucket, prefix, log)
+	return NewSync(auth, aws.USEast, aws_s3.PublicRead, bucket, prefix, procs, logger)
 }
 
 func (sink Sync) SyncDirectory(root string, debug bool) error {
@@ -66,7 +65,7 @@ func (sink Sync) SyncDirectory(root string, debug bool) error {
 
 	callback := func(src string, info os.FileInfo) error {
 
-		// sink.LogMessage(fmt.Sprintf("crawling %s", src))
+		sink.Logger.Debug("crawling %s", src)
 
 		if info.IsDir() {
 			return nil
@@ -87,23 +86,23 @@ func (sink Sync) SyncDirectory(root string, debug bool) error {
 		// which is a potential waste of time and resource. Or maybe we just
 		// don't care? (20150930/thisisaaronland)
 
-		sink.LogMessage(fmt.Sprintf("LOOKING FOR %s (%s)", dest, sink.Prefix))
+		sink.Logger.Debug("LOOKING FOR %s (%s)", dest, sink.Prefix)
 
 		change, ch_err := sink.HasChanged(source, dest)
 
 		if ch_err != nil {
-			sink.LogMessage(fmt.Sprintf("failed to determine whether %s had changed, because '%s'", source, ch_err))
+			sink.Logger.Warning("failed to determine whether %s had changed, because '%s'", source, ch_err)
 			change = true
 		}
 
 		if debug == true {
-			sink.LogMessage(fmt.Sprintf("has %s changed? the answer is %v but does it really matter since debugging is enabled?", source, change))
+			sink.Logger.Debug("has %s changed? the answer is %v but does it really matter since debugging is enabled?", source, change)
 		} else if change {
 
 			s_err := sink.SyncFile(source, dest)
 
 			if s_err != nil {
-				sink.LogMessage(fmt.Sprintf("failed to PUT %s, because '%s'", dest, s_err))
+				sink.Logger.Error("failed to PUT %s, because '%s'", dest, s_err)
 				failed++
 			}
 		} else {
@@ -118,8 +117,7 @@ func (sink Sync) SyncDirectory(root string, debug bool) error {
 
 	t1 := float64(time.Since(t0)) / 1e9
 
-	msg := fmt.Sprintf("processed %d files (error: %d) in %.3f seconds\n", files, failed, t1)
-	sink.LogMessage(msg)
+	sink.Logger.Info("processed %d files (error: %d) in %.3f seconds\n", files, failed, t1)
 
 	return nil
 }
@@ -131,30 +129,30 @@ func (sink Sync) SyncFile(source string, dest string) error {
 	body, err := ioutil.ReadFile(source)
 
 	if err != nil {
-		sink.LogMessage("OMGWTF")
+		sink.Logger.Error("Failed to read %s, because %v", source, err)
 		return err
 	}
 
 	_, err = sink.Pool.SendWork(func() {
 
-		sink.LogMessage(fmt.Sprintf("PUT %s as %s", dest, sink.ACL))
+		sink.Logger.Debug("PUT %s as %s", dest, sink.ACL)
 
 		o := aws_s3.Options{}
 
 		err := sink.Bucket.Put(dest, body, "text/plain", sink.ACL, o)
 
 		if err != nil {
-			sink.LogMessage(fmt.Sprintf("failed to PUT %s, because '%s'", dest, err))
+			sink.Logger.Error("failed to PUT %s, because '%s'", dest, err)
 		}
 
 	})
 
 	if err != nil {
-		sink.LogMessage(fmt.Sprintf("failed to schedule %s for processing, because '%s'", source, err))
+		sink.Logger.Error("failed to schedule %s for processing, because '%s'", source, err)
 		return err
 	}
 
-	// sink.LogMessage(fmt.Sprintf("scheduled %s for processing", source))
+	// sink.Logger.Debug("scheduled %s for processing", source)
 	return nil
 }
 
@@ -180,7 +178,7 @@ func (sink Sync) HasChanged(source string, dest string) (ch bool, err error) {
 	rsp, err := sink.Bucket.Head(dest, headers)
 
 	if err != nil {
-	        sink.LogMessage(fmt.Sprintf("failed to HEAD %s because %s", dest, err))
+		sink.Logger.Error("failed to HEAD %s because %s", dest, err)
 		return change, err
 	}
 
@@ -191,24 +189,5 @@ func (sink Sync) HasChanged(source string, dest string) (ch bool, err error) {
 		change = false
 	}
 
-	// sink.LogMessage(fmt.Sprintf("%s local: %s remote: %s change: %v", dest, local_hash, remote_hash, change))
-
 	return change, nil
-}
-
-// clearly I need to internalize this a bit more
-// (20150930/thisisaaronland)
-// https://talks.golang.org/2012/waza.slide
-
-func (sink Sync) LogMessage(msg string) {
-
-	fmt.Println(msg)
-
-	/*
-	   logger := func(ch chan string, txt string){
-	   	    ch <- txt
-	   }
-
-	   go logger(sink.Log, msg)
-	*/
 }

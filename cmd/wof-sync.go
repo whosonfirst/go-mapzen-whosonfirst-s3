@@ -2,10 +2,12 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"github.com/goamz/goamz/aws"
+	log "github.com/whosonfirst/go-whosonfirst-log"
 	"github.com/whosonfirst/go-whosonfirst-s3"
+	"io"
 	"os"
+	"runtime"
 )
 
 func main() {
@@ -15,6 +17,8 @@ func main() {
 	var prefix = flag.String("prefix", "", "A prefix inside your S3 bucket where things go")
 	var debug = flag.Bool("debug", false, "Don't actually try to sync anything and spew a lot of line noise")
 	var credentials = flag.String("credentials", "", "Your S3 credentials file")
+	var procs = flag.Int("processes", (runtime.NumCPU() * 2), "The number of simultaneous processes to sync data with")
+	var loglevel = flag.String("loglevel", "info", "Log level for reporting")
 
 	flag.Parse()
 
@@ -42,21 +46,10 @@ func main() {
 		panic(err)
 	}
 
-	// sudo figure out how to put all of the log
-	// channel stuff into the Sync object itself
-	// (20150930/thisisaaronland)
+	writer := io.MultiWriter(os.Stdout)
+	logger := log.NewWOFLogger(writer, "[wof-sync] ", *loglevel)
 
-	log := make(chan string)
-
-	cb := func(cs chan string) {
-		s := <-cs
-		fmt.Println(s)
-	}
-
-	go cb(log)
-
-	s := s3.WOFSync(auth, *bucket, *prefix, log)
+	s := s3.WOFSync(auth, *bucket, *prefix, *procs, logger)
 	err = s.SyncDirectory(*root, *debug)
 
-	close(log)
 }

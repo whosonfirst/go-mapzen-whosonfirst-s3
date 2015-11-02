@@ -8,13 +8,16 @@ self:	prep
 
 deps: 	self
 	go get -u "github.com/whosonfirst/go-whosonfirst-crawl"
+	go get -u "github.com/whosonfirst/go-whosonfirst-log"
 	go get -u "github.com/goamz/goamz/aws"
 	go get -u "github.com/goamz/goamz/s3"
 	go get -u "github.com/jeffail/tunny"
 
-sync: 	self
-	go build -o bin/wof-sync bin/wof-sync.go
+bin:	sync
+
+sync: 	fmt self
+	go build -o bin/wof-sync cmd/wof-sync.go
 
 fmt:
 	go fmt *.go 
-	go fmt bin/*.go
+	go fmt cmd/*.go
