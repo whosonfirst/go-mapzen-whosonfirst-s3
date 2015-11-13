@@ -7,6 +7,7 @@ package s3
 // https://github.com/goamz/goamz/blob/master/s3/s3.go
 
 import (
+	"bufio"
 	"github.com/goamz/goamz/aws"
 	aws_s3 "github.com/goamz/goamz/s3"
 	"github.com/jeffail/tunny"
@@ -93,22 +94,56 @@ func (sink Sync) SyncDirectory(root string) error {
 	return nil
 }
 
-func (sink Sync) SyncFiles (files []string, root string) {
+func (sink Sync) SyncFiles(files []string, root string) error {
 
 	wg := new(sync.WaitGroup)
 
 	for _, path := range files {
 
-	    wg.Add(1)
+		wg.Add(1)
 
-	    go func(){
-	       defer wg.Done()
-	       sink.SyncFile(path, root)
-	    }()
+		go func() {
+			defer wg.Done()
+			sink.SyncFile(path, root)
+		}()
 
 	}
 
 	wg.Wait()
+
+	return nil
+}
+
+func (sink Sync) SyncFileList(path string, root string) error {
+
+	file, err := os.Open(path)
+
+	if err != nil {
+		return err
+	}
+
+	defer file.Close()
+
+	wg := new(sync.WaitGroup)
+
+	scanner := bufio.NewScanner(file)
+
+	for scanner.Scan() {
+
+		path := scanner.Text()
+
+		wg.Add(1)
+
+		go func() {
+			defer wg.Done()
+			sink.SyncFile(path, root)
+		}()
+
+	}
+
+	wg.Wait()
+
+	return nil
 }
 
 func (sink Sync) SyncFile(source string, root string) error {
@@ -180,11 +215,6 @@ func (sink Sync) DoSyncFile(source string, dest string) error {
 	sink.Logger.Debug("scheduled %s for processing", source)
 	return nil
 }
-
-// the following appears to trigger a freak-out-and-die condition... sometimes
-// I have no idea why... test under go 1.2.1, 1.4.3 and 1.5.1 / see also:
-// https://github.com/whosonfirst/go-mapzen-whosonfirst-s3/issues/2
-// (2015/thisisaaronland)
 
 func (sink Sync) HasChanged(source string, dest string) (ch bool, err error) {
 

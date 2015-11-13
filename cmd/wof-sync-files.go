@@ -24,7 +24,7 @@ func main() {
 
 	// read paths to sync from a file?
 	args := flag.Args()
-	
+
 	if *root == "" {
 		panic("missing root")
 	}
@@ -55,4 +55,3 @@ func main() {
 	s := s3.WOFSync(auth, *bucket, *prefix, *procs, *debug, logger)
 	s.SyncFiles(args, *root)
 }
-

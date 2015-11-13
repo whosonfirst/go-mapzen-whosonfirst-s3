@@ -14,10 +14,13 @@ deps: 	self
 	go get -u "github.com/goamz/goamz/s3"
 	go get -u "github.com/jeffail/tunny"
 
-bin:	sync
+bin:	sync sync-files
 
 sync: 	fmt self
 	go build -o bin/wof-sync cmd/wof-sync.go
+
+sync-files: 	fmt self
+	go build -o bin/wof-sync-files cmd/wof-sync-files.go
 
 fmt:
 	go fmt *.go 
