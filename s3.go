@@ -176,6 +176,23 @@ func (sink Sync) HasChanged(source string, dest string) (ch bool, err error) {
 		return false, err
 	}
 
+	local_hash, err := utils.HashFile(source)
+
+	if err != nil {
+		sink.Logger.Warning("failed to hash %s, because %v", source, err)
+		return false, err
+	}
+
+	etag := rsp.Header.Get("Etag")
+	remote_hash := strings.Replace(etag, "\"", "", -1)
+
+	if local_hash == remote_hash {
+		return false, nil
+	}
+
+	// Okay so we think that things have changed but let's just check
+	// modification times to be extra sure (20151112/thisisaaronland)
+
 	info, err := os.Stat(source)
 
 	if err != nil {
@@ -197,22 +214,11 @@ func (sink Sync) HasChanged(source string, dest string) (ch bool, err error) {
 	// func (t Time) Before(u Time) bool
 	// Before reports whether the time instant t is before u.
 
+	sink.Logger.Debug("local %s %s", mtime_local, source)
+	sink.Logger.Debug("remote %s %s", mtime_remote, dest)
+
 	if mtime_local.Before(mtime_remote) {
 		sink.Logger.Warning("remote copy of %s has a more recent modification date (local: %s remote: %s)", source, mtime_local, mtime_remote)
-		return false, nil
-	}
-
-	local_hash, err := utils.HashFile(source)
-
-	if err != nil {
-		sink.Logger.Warning("failed to hash %s, because %v", source, err)
-		return false, err
-	}
-
-	etag := rsp.Header.Get("Etag")
-	remote_hash := strings.Replace(etag, "\"", "", -1)
-
-	if local_hash == remote_hash {
 		return false, nil
 	}
 
