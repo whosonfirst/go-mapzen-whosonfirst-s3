@@ -16,10 +16,10 @@ deps: 	self
 
 bin:	sync sync-files
 
-sync: 	fmt self
-	go build -o bin/wof-sync cmd/wof-sync.go
+sync-dirs: fmt self
+	go build -o bin/wof-sync-dirs cmd/wof-sync-dirs.go
 
-sync-files: 	fmt self
+sync-files: fmt self
 	go build -o bin/wof-sync-files cmd/wof-sync-files.go
 
 fmt:
