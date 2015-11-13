@@ -49,7 +49,7 @@ func main() {
 	writer := io.MultiWriter(os.Stdout)
 	logger := log.NewWOFLogger(writer, "[wof-sync] ", *loglevel)
 
-	s := s3.WOFSync(auth, *bucket, *prefix, *procs, logger)
-	err = s.SyncDirectory(*root, *debug)
+	s := s3.WOFSync(auth, *bucket, *prefix, *procs, *debug, logger)
+	err = s.SyncDirectory(*root)
 
 }

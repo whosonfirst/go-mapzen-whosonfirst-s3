@@ -28,9 +28,10 @@ type Sync struct {
 	Prefix string
 	Pool   tunny.WorkPool
 	Logger *log.WOFLogger
+	Debug  bool
 }
 
-func NewSync(auth aws.Auth, region aws.Region, acl aws_s3.ACL, bucket string, prefix string, procs int, logger *log.WOFLogger) *Sync {
+func NewSync(auth aws.Auth, region aws.Region, acl aws_s3.ACL, bucket string, prefix string, procs int, debug bool, logger *log.WOFLogger) *Sync {
 
 	runtime.GOMAXPROCS(procs)
 
@@ -44,16 +45,17 @@ func NewSync(auth aws.Auth, region aws.Region, acl aws_s3.ACL, bucket string, pr
 		Bucket: *b,
 		Prefix: prefix,
 		Pool:   *pool,
+		Debug:  debug,
 		Logger: logger,
 	}
 }
 
-func WOFSync(auth aws.Auth, bucket string, prefix string, procs int, logger *log.WOFLogger) *Sync {
+func WOFSync(auth aws.Auth, bucket string, prefix string, procs int, debug bool, logger *log.WOFLogger) *Sync {
 
-	return NewSync(auth, aws.USEast, aws_s3.PublicRead, bucket, prefix, procs, logger)
+	return NewSync(auth, aws.USEast, aws_s3.PublicRead, bucket, prefix, procs, debug, logger)
 }
 
-func (sink Sync) SyncDirectory(root string, debug bool) error {
+func (sink Sync) SyncDirectory(root string) error {
 
 	defer sink.Pool.Close()
 
@@ -62,9 +64,7 @@ func (sink Sync) SyncDirectory(root string, debug bool) error {
 
 	t0 := time.Now()
 
-	callback := func(src string, info os.FileInfo) error {
-
-		sink.Logger.Debug("crawling %s", src)
+	callback := func(source string, info os.FileInfo) error {
 
 		if info.IsDir() {
 			return nil
@@ -72,45 +72,10 @@ func (sink Sync) SyncDirectory(root string, debug bool) error {
 
 		files++
 
-		// sudo put all of this in to a function so it can
-		// be called from something other than SyncDirectory
+		err := sink.SyncFile(source, root)
 
-		source := src
-		dest := source
-
-		dest = strings.Replace(dest, root, "", -1)
-
-		if sink.Prefix != "" {
-			dest = path.Join(sink.Prefix, dest)
-		}
-
-		// Note: both HasChanged and SyncFile will ioutil.ReadFile(source)
-		// which is a potential waste of time and resource. Or maybe we just
-		// don't care? (20150930/thisisaaronland)
-
-		sink.Logger.Debug("Looking for changes %s (%s)", dest, sink.Prefix)
-
-		change, ch_err := sink.HasChanged(source, dest)
-
-		if ch_err != nil {
-			sink.Logger.Warning("failed to determine whether %s had changed, because '%s'", source, ch_err)
-			change = true
-		}
-
-		if debug == true {
-			sink.Logger.Debug("has %s changed? the answer is %v but does it really matter since debugging is enabled?", source, change)
-			return nil
-		}
-
-		if !change {
-			sink.Logger.Debug("%s has not changed, skipping", source)
-			return nil
-		}
-
-		s_err := sink.SyncFile(source, dest)
-
-		if s_err != nil {
-			sink.Logger.Error("failed to PUT %s, because '%s'", dest, s_err)
+		if err != nil {
+			sink.Logger.Error("failed to sync %s, because '%s'", source, err)
 			failed++
 		}
 
@@ -127,7 +92,43 @@ func (sink Sync) SyncDirectory(root string, debug bool) error {
 	return nil
 }
 
-func (sink Sync) SyncFile(source string, dest string) error {
+func (sink Sync) SyncFile(source string, root string) error {
+
+	dest := source
+
+	dest = strings.Replace(dest, root, "", -1)
+
+	if sink.Prefix != "" {
+		dest = path.Join(sink.Prefix, dest)
+	}
+
+	// Note: both HasChanged and SyncFile will ioutil.ReadFile(source)
+	// which is a potential waste of time and resource. Or maybe we just
+	// don't care? (20150930/thisisaaronland)
+
+	sink.Logger.Debug("Looking for changes %s (%s)", dest, sink.Prefix)
+
+	change, ch_err := sink.HasChanged(source, dest)
+
+	if ch_err != nil {
+		sink.Logger.Warning("failed to determine whether %s had changed, because '%s'", source, ch_err)
+		change = true
+	}
+
+	if sink.Debug == true {
+		sink.Logger.Debug("has %s changed? the answer is %v but does it really matter since debugging is enabled?", source, change)
+		return nil
+	}
+
+	if !change {
+		sink.Logger.Debug("%s has not changed, skipping", source)
+		return nil
+	}
+
+	return sink.DoSyncFile(source, dest)
+}
+
+func (sink Sync) DoSyncFile(source string, dest string) error {
 
 	sink.Logger.Debug("prepare %s for syncing", source)
 
