@@ -19,6 +19,7 @@ import (
 	"path"
 	"runtime"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -90,6 +91,24 @@ func (sink Sync) SyncDirectory(root string) error {
 	sink.Logger.Info("processed %d files (error: %d) in %.3f seconds\n", files, failed, t1)
 
 	return nil
+}
+
+func (sink Sync) SyncFiles (files []string, root string) {
+
+	wg := new(sync.WaitGroup)
+
+	for _, path := range files {
+
+	    wg.Add(1)
+
+	    go func(){
+	       defer wg.Done()
+	       sink.SyncFile(path, root)
+	    }()
+
+	}
+
+	wg.Wait()
 }
 
 func (sink Sync) SyncFile(source string, root string) error {
