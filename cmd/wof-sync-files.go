@@ -17,6 +17,7 @@ func main() {
 	var prefix = flag.String("prefix", "", "A prefix inside your S3 bucket where things go")
 	var list = flag.String("file-list", "", "A single file containing a list of files to sync")
 	var debug = flag.Bool("debug", false, "Don't actually try to sync anything and spew a lot of line noise")
+	var tidy = flag.Bool("tidy", false, "Remove -file-list file, if present")
 	var credentials = flag.String("credentials", "", "Your S3 credentials file")
 	var procs = flag.Int("processes", (runtime.NumCPU() * 2), "The number of concurrent processes to sync data with")
 	var loglevel = flag.String("loglevel", "info", "Log level for reporting")
@@ -64,5 +65,9 @@ func main() {
 		}
 
 		s.SyncFileList(*list, *root)
+
+		if !*debug && *tidy {
+			os.Remove(*list)
+		}
 	}
 }
