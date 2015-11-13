@@ -14,7 +14,7 @@ deps: 	self
 	go get -u "github.com/goamz/goamz/s3"
 	go get -u "github.com/jeffail/tunny"
 
-bin:	sync sync-files
+bin:	sync-dirs sync-files
 
 sync-dirs: fmt self
 	go build -o bin/wof-sync-dirs cmd/wof-sync-dirs.go
