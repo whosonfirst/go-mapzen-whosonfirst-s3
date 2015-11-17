@@ -21,16 +21,22 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
 type Sync struct {
-	ACL    aws_s3.ACL
-	Bucket aws_s3.Bucket
-	Prefix string
-	Pool   tunny.WorkPool
-	Logger *log.WOFLogger
-	Debug  bool
+	ACL       aws_s3.ACL
+	Bucket    aws_s3.Bucket
+	Prefix    string
+	Pool      tunny.WorkPool
+	Logger    *log.WOFLogger
+	Debug     bool
+	Success   int64
+	Error     int64
+	Skipped   int64
+	Scheduled int64
+	Completed int64
 }
 
 func NewSync(auth aws.Auth, region aws.Region, acl aws_s3.ACL, bucket string, prefix string, procs int, debug bool, logger *log.WOFLogger) *Sync {
@@ -148,6 +154,8 @@ func (sink Sync) SyncFileList(path string, root string) error {
 
 func (sink Sync) SyncFile(source string, root string) error {
 
+	atomic.AddInt64(&sink.Scheduled, 1)
+
 	dest := source
 
 	dest = strings.Replace(dest, root, "", -1)
@@ -175,11 +183,22 @@ func (sink Sync) SyncFile(source string, root string) error {
 	}
 
 	if !change {
+		atomic.AddInt64(&sink.Completed, 1)
+		atomic.AddInt64(&sink.Skipped, 1)
 		sink.Logger.Debug("%s has not changed, skipping", source)
 		return nil
 	}
 
-	return sink.DoSyncFile(source, dest)
+	err := sink.DoSyncFile(source, dest)
+
+	if err != nil {
+		atomic.AddInt64(&sink.Error, 1)
+	} else {
+		atomic.AddInt64(&sink.Success, 1)
+	}
+
+	atomic.AddInt64(&sink.Completed, 1)
+	return err
 }
 
 func (sink Sync) DoSyncFile(source string, dest string) error {

@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"github.com/goamz/goamz/aws"
+	"github.com/whosonfirst/go-slackcat-writer"
 	log "github.com/whosonfirst/go-whosonfirst-log"
 	"github.com/whosonfirst/go-whosonfirst-s3"
 	"io"
@@ -21,6 +22,8 @@ func main() {
 	var credentials = flag.String("credentials", "", "Your S3 credentials file")
 	var procs = flag.Int("processes", (runtime.NumCPU() * 2), "The number of concurrent processes to sync data with")
 	var loglevel = flag.String("loglevel", "info", "Log level for reporting")
+	var slack = flag.Bool("slack", false, "Send status updates to Slack (via slackcat)")
+	var slack_config = flag.String("slack-config", "", "The path to your slackcat config")
 
 	flag.Parse()
 
@@ -48,7 +51,7 @@ func main() {
 		panic(err)
 	}
 
-	logger := log.NewWOFLogger("[wof-sync] ")
+	logger := log.NewWOFLogger("[wof-sync-files] ")
 
 	writer := io.MultiWriter(os.Stdout)
 	logger.AddLogger(writer, *loglevel)
@@ -70,6 +73,17 @@ func main() {
 
 		if !*debug && *tidy {
 			os.Remove(*list)
+		}
+	}
+
+	if *slack {
+
+		sl, err := slackcat.NewWriter(*slack_config)
+
+		if err != nil {
+
+			logger.AddLogger(sl, "status")
+			logger.Status("Scheduled %d Completed %d Success %d Error %d Skipped %d", s.Scheduled, s.Completed, s.Success, s.Error, s.Skipped)
 		}
 	}
 }
