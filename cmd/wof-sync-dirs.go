@@ -46,8 +46,10 @@ func main() {
 		panic(err)
 	}
 
+	logger := log.NewWOFLogger("[wof-sync] ")
+
 	writer := io.MultiWriter(os.Stdout)
-	logger := log.NewWOFLogger(writer, "[wof-sync] ", *loglevel)
+	logger.AddLogger(writer, *loglevel)
 
 	s := s3.WOFSync(auth, *bucket, *prefix, *procs, *debug, logger)
 	err = s.SyncDirectory(*root)
