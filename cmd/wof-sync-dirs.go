@@ -62,7 +62,8 @@ func main() {
 		sl, err := slackcat.NewWriter(*slack_config)
 
 		if err != nil {
-
+			logger.Warning("failed to create slackcat writer, because %v", err)
+		} else {
 			logger.AddLogger(sl, "status")
 			logger.Status("Scheduled %d Completed %d Success %d Error %d Skipped %d", s.Scheduled, s.Completed, s.Success, s.Error, s.Skipped)
 		}

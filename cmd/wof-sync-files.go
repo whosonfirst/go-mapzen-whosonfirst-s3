@@ -13,7 +13,7 @@ import (
 
 func main() {
 
-	var root = flag.String("root", "", "The directory PLEASE WRITE ME")
+	var root = flag.String("root", "", "The directory where your Who's On First data is stored")
 	var bucket = flag.String("bucket", "", "The S3 bucket to sync <root> to")
 	var prefix = flag.String("prefix", "", "A prefix inside your S3 bucket where things go")
 	var list = flag.String("file-list", "", "A single file containing a list of files to sync")
@@ -81,7 +81,8 @@ func main() {
 		sl, err := slackcat.NewWriter(*slack_config)
 
 		if err != nil {
-
+			logger.Warning("failed to create slackcat writer, because %v", err)
+		} else {
 			logger.AddLogger(sl, "status")
 			logger.Status("Scheduled %d Completed %d Success %d Error %d Skipped %d", s.Scheduled, s.Completed, s.Success, s.Error, s.Skipped)
 		}
