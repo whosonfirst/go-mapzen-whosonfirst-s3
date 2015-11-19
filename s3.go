@@ -49,12 +49,17 @@ func NewSync(auth aws.Auth, region aws.Region, acl aws_s3.ACL, bucket string, pr
 	b := s.Bucket(bucket)
 
 	return &Sync{
-		ACL:    acl,
-		Bucket: *b,
-		Prefix: prefix,
-		Pool:   *pool,
-		Debug:  debug,
-		Logger: logger,
+		ACL:       acl,
+		Bucket:    *b,
+		Prefix:    prefix,
+		Pool:      *pool,
+		Debug:     debug,
+		Logger:    logger,
+		Scheduled: 0,
+		Completed: 0,
+		Skipped:   0,
+		Error:     0,
+		Success:   0,
 	}
 }
 
@@ -63,7 +68,7 @@ func WOFSync(auth aws.Auth, bucket string, prefix string, procs int, debug bool,
 	return NewSync(auth, aws.USEast, aws_s3.PublicRead, bucket, prefix, procs, debug, logger)
 }
 
-func (sink Sync) SyncDirectory(root string) error {
+func (sink *Sync) SyncDirectory(root string) error {
 
 	defer sink.Pool.Close()
 
@@ -100,7 +105,7 @@ func (sink Sync) SyncDirectory(root string) error {
 	return nil
 }
 
-func (sink Sync) SyncFiles(files []string, root string) error {
+func (sink *Sync) SyncFiles(files []string, root string) error {
 
 	wg := new(sync.WaitGroup)
 
@@ -120,7 +125,7 @@ func (sink Sync) SyncFiles(files []string, root string) error {
 	return nil
 }
 
-func (sink Sync) SyncFileList(path string, root string) error {
+func (sink *Sync) SyncFileList(path string, root string) error {
 
 	file, err := os.Open(path)
 
@@ -152,7 +157,7 @@ func (sink Sync) SyncFileList(path string, root string) error {
 	return nil
 }
 
-func (sink Sync) SyncFile(source string, root string) error {
+func (sink *Sync) SyncFile(source string, root string) error {
 
 	atomic.AddInt64(&sink.Scheduled, 1)
 
@@ -173,11 +178,15 @@ func (sink Sync) SyncFile(source string, root string) error {
 	change, ch_err := sink.HasChanged(source, dest)
 
 	if ch_err != nil {
+		atomic.AddInt64(&sink.Completed, 1)
+		atomic.AddInt64(&sink.Error, 1)
 		sink.Logger.Warning("failed to determine whether %s had changed, because '%s'", source, ch_err)
 		change = true
 	}
 
 	if sink.Debug == true {
+		atomic.AddInt64(&sink.Completed, 1)
+		atomic.AddInt64(&sink.Skipped, 1)
 		sink.Logger.Debug("has %s changed? the answer is %v but does it really matter since debugging is enabled?", source, change)
 		return nil
 	}
@@ -201,7 +210,7 @@ func (sink Sync) SyncFile(source string, root string) error {
 	return err
 }
 
-func (sink Sync) DoSyncFile(source string, dest string) error {
+func (sink *Sync) DoSyncFile(source string, dest string) error {
 
 	sink.Logger.Debug("prepare %s for syncing", source)
 
@@ -235,7 +244,7 @@ func (sink Sync) DoSyncFile(source string, dest string) error {
 	return nil
 }
 
-func (sink Sync) HasChanged(source string, dest string) (ch bool, err error) {
+func (sink *Sync) HasChanged(source string, dest string) (ch bool, err error) {
 
 	headers := make(http.Header)
 	rsp, err := sink.Bucket.Head(dest, headers)
