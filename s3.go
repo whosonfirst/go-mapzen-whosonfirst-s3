@@ -26,17 +26,18 @@ import (
 )
 
 type Sync struct {
-	ACL       aws_s3.ACL
-	Bucket    aws_s3.Bucket
-	Prefix    string
-	Pool      tunny.WorkPool
-	Logger    *log.WOFLogger
-	Debug     bool
-	Success   int64
-	Error     int64
-	Skipped   int64
-	Scheduled int64
-	Completed int64
+	ACL           aws_s3.ACL
+	Bucket        aws_s3.Bucket
+	Prefix        string
+	Pool          tunny.WorkPool
+	Logger        *log.WOFLogger
+	Debug         bool
+	Success       int64
+	Error         int64
+	Skipped       int64
+	Scheduled     int64
+	Completed     int64
+	TimeToProcess *time.Duration
 }
 
 func NewSync(auth aws.Auth, region aws.Region, acl aws_s3.ACL, bucket string, prefix string, procs int, debug bool, logger *log.WOFLogger) *Sync {
@@ -48,18 +49,21 @@ func NewSync(auth aws.Auth, region aws.Region, acl aws_s3.ACL, bucket string, pr
 	s := aws_s3.New(auth, region)
 	b := s.Bucket(bucket)
 
+	ttp := new(time.Duration)
+
 	return &Sync{
-		ACL:       acl,
-		Bucket:    *b,
-		Prefix:    prefix,
-		Pool:      *pool,
-		Debug:     debug,
-		Logger:    logger,
-		Scheduled: 0,
-		Completed: 0,
-		Skipped:   0,
-		Error:     0,
-		Success:   0,
+		ACL:           acl,
+		Bucket:        *b,
+		Prefix:        prefix,
+		Pool:          *pool,
+		Debug:         debug,
+		Logger:        logger,
+		Scheduled:     0,
+		Completed:     0,
+		Skipped:       0,
+		Error:         0,
+		Success:       0,
+		TimeToProcess: ttp,
 	}
 }
 
@@ -72,9 +76,6 @@ func (sink *Sync) SyncDirectory(root string) error {
 
 	defer sink.Pool.Close()
 
-	var files int64
-	var failed int64
-
 	t0 := time.Now()
 
 	callback := func(source string, info os.FileInfo) error {
@@ -83,13 +84,10 @@ func (sink *Sync) SyncDirectory(root string) error {
 			return nil
 		}
 
-		files++
-
 		err := sink.SyncFile(source, root)
 
 		if err != nil {
 			sink.Logger.Error("failed to sync %s, because '%s'", source, err)
-			failed++
 		}
 
 		return nil
@@ -98,14 +96,17 @@ func (sink *Sync) SyncDirectory(root string) error {
 	c := crawl.NewCrawler(root)
 	_ = c.Crawl(callback)
 
-	t1 := float64(time.Since(t0)) / 1e9
-
-	sink.Logger.Info("processed %d files (error: %d) in %.3f seconds\n", files, failed, t1)
+	ttp := time.Since(t0)
+	sink.TimeToProcess = &ttp
 
 	return nil
 }
 
 func (sink *Sync) SyncFiles(files []string, root string) error {
+
+	defer sink.Pool.Close()
+
+	t0 := time.Now()
 
 	wg := new(sync.WaitGroup)
 
@@ -122,10 +123,17 @@ func (sink *Sync) SyncFiles(files []string, root string) error {
 
 	wg.Wait()
 
+	ttp := time.Since(t0)
+	sink.TimeToProcess = &ttp
+
 	return nil
 }
 
 func (sink *Sync) SyncFileList(path string, root string) error {
+
+	defer sink.Pool.Close()
+
+	t0 := time.Now()
 
 	file, err := os.Open(path)
 
@@ -153,6 +161,9 @@ func (sink *Sync) SyncFileList(path string, root string) error {
 	}
 
 	wg.Wait()
+
+	ttp := time.Since(t0)
+	sink.TimeToProcess = &ttp
 
 	return nil
 }
