@@ -9,6 +9,7 @@ self:	prep
 deps: 	self
 	go get -u "github.com/whosonfirst/go-whosonfirst-crawl"
 	go get -u "github.com/whosonfirst/go-whosonfirst-log"
+	go get -u "github.com/whosonfirst/go-whosonfirst-pool"
 	go get -u "github.com/whosonfirst/go-whosonfirst-utils"
 	go get -u "github.com/whosonfirst/go-slackcat-writer"
 	go get -u "github.com/goamz/goamz/aws"

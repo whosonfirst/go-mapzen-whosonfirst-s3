@@ -13,6 +13,7 @@ import (
 	"github.com/jeffail/tunny"
 	"github.com/whosonfirst/go-whosonfirst-crawl"
 	log "github.com/whosonfirst/go-whosonfirst-log"
+	pool "github.com/whosonfirst/go-whosonfirst-pool"
 	utils "github.com/whosonfirst/go-whosonfirst-utils"
 	"io/ioutil"
 	"net/http"
@@ -29,7 +30,7 @@ type Sync struct {
 	ACL           aws_s3.ACL
 	Bucket        aws_s3.Bucket
 	Prefix        string
-	Pool          tunny.WorkPool
+	WorkPool      tunny.WorkPool
 	Logger        *log.WOFLogger
 	Debug         bool
 	Success       int64
@@ -38,13 +39,17 @@ type Sync struct {
 	Scheduled     int64
 	Completed     int64
 	TimeToProcess *time.Duration
+	Retries       *pool.LIFOPool
+	MaxRetries    float64 // max percentage of errors over scheduled
 }
 
 func NewSync(auth aws.Auth, region aws.Region, acl aws_s3.ACL, bucket string, prefix string, procs int, debug bool, logger *log.WOFLogger) *Sync {
 
 	runtime.GOMAXPROCS(procs)
 
-	pool, _ := tunny.CreatePoolGeneric(procs).Open()
+	workpool, _ := tunny.CreatePoolGeneric(procs).Open()
+
+	retries := pool.NewLIFOPool()
 
 	s := aws_s3.New(auth, region)
 	b := s.Bucket(bucket)
@@ -55,7 +60,7 @@ func NewSync(auth aws.Auth, region aws.Region, acl aws_s3.ACL, bucket string, pr
 		ACL:           acl,
 		Bucket:        *b,
 		Prefix:        prefix,
-		Pool:          *pool,
+		WorkPool:      *workpool,
 		Debug:         debug,
 		Logger:        logger,
 		Scheduled:     0,
@@ -64,6 +69,7 @@ func NewSync(auth aws.Auth, region aws.Region, acl aws_s3.ACL, bucket string, pr
 		Error:         0,
 		Success:       0,
 		TimeToProcess: ttp,
+		Retries:       retries,
 	}
 }
 
@@ -74,7 +80,7 @@ func WOFSync(auth aws.Auth, bucket string, prefix string, procs int, debug bool,
 
 func (sink *Sync) SyncDirectory(root string) error {
 
-	defer sink.Pool.Close()
+	defer sink.WorkPool.Close()
 
 	t0 := time.Now()
 
@@ -104,7 +110,7 @@ func (sink *Sync) SyncDirectory(root string) error {
 
 func (sink *Sync) SyncFiles(files []string, root string) error {
 
-	defer sink.Pool.Close()
+	defer sink.WorkPool.Close()
 
 	t0 := time.Now()
 
@@ -131,7 +137,7 @@ func (sink *Sync) SyncFiles(files []string, root string) error {
 
 func (sink *Sync) SyncFileList(path string, root string) error {
 
-	defer sink.Pool.Close()
+	defer sink.WorkPool.Close()
 
 	t0 := time.Now()
 
@@ -232,7 +238,7 @@ func (sink *Sync) DoSyncFile(source string, dest string) error {
 		return err
 	}
 
-	_, err = sink.Pool.SendWork(func() {
+	_, err = sink.WorkPool.SendWork(func() {
 
 		sink.Logger.Debug("PUT %s as %s", dest, sink.ACL)
 
