@@ -38,6 +38,7 @@ type Sync struct {
 	Skipped       int64
 	Scheduled     int64
 	Completed     int64
+	Retried       int64
 	TimeToProcess *time.Duration
 	Retries       *pool.LIFOPool
 	MaxRetries    float64 // max percentage of errors over scheduled
@@ -68,6 +69,7 @@ func NewSync(auth aws.Auth, region aws.Region, acl aws_s3.ACL, bucket string, pr
 		Skipped:       0,
 		Error:         0,
 		Success:       0,
+		Retried:       0,
 		TimeToProcess: ttp,
 		Retries:       retries,
 	}
@@ -102,6 +104,8 @@ func (sink *Sync) SyncDirectory(root string) error {
 	c := crawl.NewCrawler(root)
 	_ = c.Crawl(callback)
 
+	sink.ProcessRetries(root)
+
 	ttp := time.Since(t0)
 	sink.TimeToProcess = &ttp
 
@@ -128,6 +132,8 @@ func (sink *Sync) SyncFiles(files []string, root string) error {
 	}
 
 	wg.Wait()
+
+	sink.ProcessRetries(root)
 
 	ttp := time.Since(t0)
 	sink.TimeToProcess = &ttp
@@ -168,6 +174,8 @@ func (sink *Sync) SyncFileList(path string, root string) error {
 
 	wg.Wait()
 
+	sink.ProcessRetries(root)
+
 	ttp := time.Since(t0)
 	sink.TimeToProcess = &ttp
 
@@ -198,7 +206,9 @@ func (sink *Sync) SyncFile(source string, root string) error {
 		atomic.AddInt64(&sink.Completed, 1)
 		atomic.AddInt64(&sink.Error, 1)
 		sink.Logger.Warning("failed to determine whether %s had changed, because '%s'", source, ch_err)
-		change = true
+
+		sink.Retries.Push(&pool.PoolString{String: source})
+		return nil
 	}
 
 	if sink.Debug == true {
@@ -218,6 +228,7 @@ func (sink *Sync) SyncFile(source string, root string) error {
 	err := sink.DoSyncFile(source, dest)
 
 	if err != nil {
+		sink.Retries.Push(&pool.PoolString{String: source})
 		atomic.AddInt64(&sink.Error, 1)
 	} else {
 		atomic.AddInt64(&sink.Success, 1)
@@ -318,4 +329,69 @@ func (sink *Sync) HasChanged(source string, dest string) (ch bool, err error) {
 	}
 
 	return true, nil
+}
+
+func (sink *Sync) ProcessRetries(root string) bool {
+
+	to_retry := sink.Retries.Length()
+
+	if to_retry > 0 {
+
+		scheduled_f := float64(sink.Scheduled)
+		retry_f := float64(to_retry)
+
+		pct := (retry_f / scheduled_f) * 100.0
+
+		if pct > sink.MaxRetries {
+			sink.Logger.Warning("E_EXCESSIVE_ERRORS, %f percent of scheduled processes failed thus undermining our faith that they will work now...", pct)
+			return false
+		}
+
+		sink.Logger.Info("There are %d failed requests that will now be retried", to_retry)
+
+		wg := new(sync.WaitGroup)
+
+		for sink.Retries.Length() > 0 {
+
+			r, ok := sink.Retries.Pop()
+
+			if !ok {
+				sink.Logger.Error("failed to pop retries because... computers?")
+				break
+			}
+
+			source := r.StringValue()
+
+			wg.Add(1)
+
+			go func() {
+
+				defer wg.Done()
+
+				atomic.AddInt64(&sink.Scheduled, 1)
+
+				sink.WorkPool.SendWork(func() {
+
+					atomic.AddInt64(&sink.Retried, 1)
+
+					sink.SyncFile(source, root)
+
+					/*
+						if err != nil {
+							atomic.AddInt64(&sink.Error, 1)
+						} else {
+							atomic.AddInt64(&sink.Error, -1)
+						}
+					*/
+
+					atomic.AddInt64(&sink.Completed, 1)
+				})
+
+			}()
+		}
+
+		wg.Wait()
+	}
+
+	return true
 }
