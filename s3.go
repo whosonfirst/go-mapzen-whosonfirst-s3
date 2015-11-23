@@ -374,6 +374,8 @@ func (sink *Sync) ProcessRetries(root string) bool {
 
 					atomic.AddInt64(&sink.Retried, 1)
 
+					sink.Logger.Info("retry syncing %s", source)
+
 					sink.SyncFile(source, root)
 
 					/*
