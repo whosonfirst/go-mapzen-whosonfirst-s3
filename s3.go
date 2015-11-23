@@ -72,6 +72,7 @@ func NewSync(auth aws.Auth, region aws.Region, acl aws_s3.ACL, bucket string, pr
 		Retried:       0,
 		TimeToProcess: ttp,
 		Retries:       retries,
+		MaxRetries:    25.0, // maybe allow this to be user-defined ?
 	}
 }
 
