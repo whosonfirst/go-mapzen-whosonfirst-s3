@@ -57,6 +57,7 @@ func main() {
 	logger.AddLogger(writer, *loglevel)
 
 	s := s3.WOFSync(auth, *bucket, *prefix, *procs, *debug, logger)
+	s.MonitorStatus()
 
 	if *list == "" {
 		args := flag.Args()
@@ -85,7 +86,9 @@ func main() {
 		} else {
 
 			logger.AddLogger(sl, "status")
-			logger.Status("Scheduled %d Completed %d Success %d Error %d Skipped %d Time %v", s.Scheduled, s.Completed, s.Success, s.Error, s.Skipped, s.TimeToProcess)
+
+			logger.Status(s.StatusReport())
+			logger.Status("Time to process %v", s.TimeToProcess)
 		}
 	}
 }

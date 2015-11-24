@@ -8,6 +8,7 @@ package s3
 
 import (
 	"bufio"
+	"fmt"
 	"github.com/goamz/goamz/aws"
 	aws_s3 "github.com/goamz/goamz/s3"
 	"github.com/jeffail/tunny"
@@ -381,14 +382,6 @@ func (sink *Sync) ProcessRetries(root string) bool {
 
 					sink.SyncFile(source, root)
 
-					/*
-						if err != nil {
-							atomic.AddInt64(&sink.Error, 1)
-						} else {
-							atomic.AddInt64(&sink.Error, -1)
-						}
-					*/
-
 					atomic.AddInt64(&sink.Completed, 1)
 				})
 
@@ -399,4 +392,34 @@ func (sink *Sync) ProcessRetries(root string) bool {
 	}
 
 	return true
+}
+
+func (sink *Sync) MonitorStatus() {
+
+	go func() {
+
+		t0 := time.Now()
+
+		for {
+
+			rpt := sink.StatusReport()
+			ttp := time.Since(t0)
+
+			sink.Logger.Info("%s Time %v", rpt, ttp)
+
+			time.Sleep(10 * time.Second)
+
+			if sink.Scheduled == sink.Completed {
+				break
+			}
+		}
+
+		sink.Logger.Info(sink.StatusReport())
+		sink.Logger.Info("monitoring complete")
+	}()
+}
+
+func (sink *Sync) StatusReport() string {
+	return fmt.Sprintf("Scheduled %d Completed %d Success %d Error %d Skipped %d Retried %d Goroutines %d",
+		sink.Scheduled, sink.Completed, sink.Success, sink.Error, sink.Skipped, sink.Retried, runtime.NumGoroutine())
 }
