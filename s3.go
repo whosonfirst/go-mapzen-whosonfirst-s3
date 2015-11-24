@@ -46,6 +46,8 @@ type Sync struct {
 
 func NewSync(auth aws.Auth, region aws.Region, acl aws_s3.ACL, bucket string, prefix string, procs int, debug bool, logger *log.WOFLogger) *Sync {
 
+	logger.Info("creating a new Sync thing-y with %d processes", procs)
+
 	runtime.GOMAXPROCS(procs)
 
 	workpool, _ := tunny.CreatePoolGeneric(procs).Open()
