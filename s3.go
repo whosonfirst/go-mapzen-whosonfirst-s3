@@ -90,13 +90,17 @@ func (sink *Sync) SyncDirectory(root string) error {
 
 	t0 := time.Now()
 
+	wg := new(sync.WaitGroup)
+
 	callback := func(source string, info os.FileInfo) error {
+
+		wg.Add(1)
 
 		if info.IsDir() {
 			return nil
 		}
 
-		err := sink.SyncFile(source, root)
+		err := sink.SyncFile(source, root, wg)
 
 		if err != nil {
 			sink.Logger.Error("failed to sync %s, because '%s'", source, err)
@@ -107,6 +111,8 @@ func (sink *Sync) SyncDirectory(root string) error {
 
 	c := crawl.NewCrawler(root)
 	_ = c.Crawl(callback)
+
+	wg.Wait()
 
 	sink.ProcessRetries(root)
 
@@ -129,10 +135,8 @@ func (sink *Sync) SyncFiles(files []string, root string) error {
 		wg.Add(1)
 
 		go func() {
-			defer wg.Done()
-			sink.SyncFile(path, root)
+			sink.SyncFile(path, root, wg)
 		}()
-
 	}
 
 	wg.Wait()
@@ -161,19 +165,20 @@ func (sink *Sync) SyncFileList(path string, root string) error {
 
 	scanner := bufio.NewScanner(file)
 
+	wg := new(sync.WaitGroup)
+
 	for scanner.Scan() {
 
 		path := scanner.Text()
 
-		_, err = sink.WorkPool.SendWork(func() {
-			sink.SyncFile(path, root)
-		})
+		wg.Add(1)
 
-		if err != nil {
-			sink.Logger.Error("failed to schedule %s for processing, because '%s'", path, err)
-		}
-
+		go func() {
+			sink.SyncFile(path, root, wg)
+		}()
 	}
+
+	wg.Wait()
 
 	sink.ProcessRetries(root)
 
@@ -183,60 +188,74 @@ func (sink *Sync) SyncFileList(path string, root string) error {
 	return nil
 }
 
-func (sink *Sync) SyncFile(source string, root string) error {
+func (sink *Sync) SyncFile(source string, root string, wg *sync.WaitGroup) error {
 
 	atomic.AddInt64(&sink.Scheduled, 1)
 
-	dest := source
+	_, err := sink.WorkPool.SendWork(func() {
 
-	dest = strings.Replace(dest, root, "", -1)
+		defer wg.Done()
 
-	if sink.Prefix != "" {
-		dest = path.Join(sink.Prefix, dest)
-	}
+		dest := source
 
-	// Note: both HasChanged and SyncFile will ioutil.ReadFile(source)
-	// which is a potential waste of time and resource. Or maybe we just
-	// don't care? (20150930/thisisaaronland)
+		dest = strings.Replace(dest, root, "", -1)
 
-	sink.Logger.Debug("Looking for changes %s (%s)", dest, sink.Prefix)
+		if sink.Prefix != "" {
+			dest = path.Join(sink.Prefix, dest)
+		}
 
-	change, ch_err := sink.HasChanged(source, dest)
+		// Note: both HasChanged and SyncFile will ioutil.ReadFile(source)
+		// which is a potential waste of time and resource. Or maybe we just
+		// don't care? (20150930/thisisaaronland)
 
-	if ch_err != nil {
+		sink.Logger.Debug("Looking for changes to %s (%s)", dest, sink.Prefix)
+
+		change, ch_err := sink.HasChanged(source, dest)
+
+		if ch_err != nil {
+			atomic.AddInt64(&sink.Completed, 1)
+			atomic.AddInt64(&sink.Error, 1)
+			sink.Logger.Warning("failed to determine whether %s had changed, because '%s'", source, ch_err)
+
+			sink.Retries.Push(&pool.PoolString{String: source})
+			return
+		}
+
+		if sink.Debug == true {
+			atomic.AddInt64(&sink.Completed, 1)
+			atomic.AddInt64(&sink.Skipped, 1)
+			sink.Logger.Debug("has %s changed? the answer is %v but does it really matter since debugging is enabled?", source, change)
+			return
+		}
+
+		if !change {
+			atomic.AddInt64(&sink.Completed, 1)
+			atomic.AddInt64(&sink.Skipped, 1)
+			sink.Logger.Debug("%s has not changed, skipping", source)
+			return
+		}
+
+		err := sink.DoSyncFile(source, dest)
+
+		if err != nil {
+			sink.Retries.Push(&pool.PoolString{String: source})
+			atomic.AddInt64(&sink.Error, 1)
+		} else {
+			atomic.AddInt64(&sink.Success, 1)
+		}
+
 		atomic.AddInt64(&sink.Completed, 1)
-		atomic.AddInt64(&sink.Error, 1)
-		sink.Logger.Warning("failed to determine whether %s had changed, because '%s'", source, ch_err)
-
-		sink.Retries.Push(&pool.PoolString{String: source})
-		return nil
-	}
-
-	if sink.Debug == true {
-		atomic.AddInt64(&sink.Completed, 1)
-		atomic.AddInt64(&sink.Skipped, 1)
-		sink.Logger.Debug("has %s changed? the answer is %v but does it really matter since debugging is enabled?", source, change)
-		return nil
-	}
-
-	if !change {
-		atomic.AddInt64(&sink.Completed, 1)
-		atomic.AddInt64(&sink.Skipped, 1)
-		sink.Logger.Debug("%s has not changed, skipping", source)
-		return nil
-	}
-
-	err := sink.DoSyncFile(source, dest)
+	})
 
 	if err != nil {
-		sink.Retries.Push(&pool.PoolString{String: source})
+		wg.Done()
 		atomic.AddInt64(&sink.Error, 1)
-	} else {
-		atomic.AddInt64(&sink.Success, 1)
+		sink.Logger.Error("failed to schedule %s for processing, because %v", source, err)
+		return err
 	}
 
-	atomic.AddInt64(&sink.Completed, 1)
-	return err
+	sink.Logger.Debug("schedule %s for processing", source)
+	return nil
 }
 
 func (sink *Sync) DoSyncFile(source string, dest string) error {
@@ -250,26 +269,17 @@ func (sink *Sync) DoSyncFile(source string, dest string) error {
 		return err
 	}
 
-	_, err = sink.WorkPool.SendWork(func() {
+	sink.Logger.Debug("PUT %s as %s", dest, sink.ACL)
 
-		sink.Logger.Debug("PUT %s as %s", dest, sink.ACL)
+	o := aws_s3.Options{}
 
-		o := aws_s3.Options{}
-
-		err := sink.Bucket.Put(dest, body, "text/plain", sink.ACL, o)
-
-		if err != nil {
-			sink.Logger.Error("failed to PUT %s, because '%s'", dest, err)
-		}
-
-	})
+	err = sink.Bucket.Put(dest, body, "text/plain", sink.ACL, o)
 
 	if err != nil {
-		sink.Logger.Error("failed to schedule %s for processing, because '%s'", source, err)
+		sink.Logger.Error("failed to PUT %s, because '%s'", dest, err)
 		return err
 	}
 
-	sink.Logger.Debug("scheduled %s for processing", source)
 	return nil
 }
 
@@ -367,8 +377,6 @@ func (sink *Sync) ProcessRetries(root string) bool {
 
 			go func() {
 
-				defer wg.Done()
-
 				atomic.AddInt64(&sink.Scheduled, 1)
 
 				sink.WorkPool.SendWork(func() {
@@ -377,7 +385,7 @@ func (sink *Sync) ProcessRetries(root string) bool {
 
 					sink.Logger.Info("retry syncing %s", source)
 
-					sink.SyncFile(source, root)
+					sink.SyncFile(source, root, wg)
 
 					atomic.AddInt64(&sink.Completed, 1)
 				})
