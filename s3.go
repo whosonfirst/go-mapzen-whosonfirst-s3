@@ -159,24 +159,21 @@ func (sink *Sync) SyncFileList(path string, root string) error {
 
 	defer file.Close()
 
-	wg := new(sync.WaitGroup)
-
 	scanner := bufio.NewScanner(file)
 
 	for scanner.Scan() {
 
 		path := scanner.Text()
 
-		wg.Add(1)
-
-		go func() {
-			defer wg.Done()
+		_, err = sink.WorkPool.SendWork(func() {
 			sink.SyncFile(path, root)
-		}()
+		})
+
+		if err != nil {
+			sink.Logger.Error("failed to schedule %s for processing, because '%s'", path, err)
+		}
 
 	}
-
-	wg.Wait()
 
 	sink.ProcessRetries(root)
 
