@@ -134,9 +134,9 @@ func (sink *Sync) SyncFiles(files []string, root string) error {
 
 		wg.Add(1)
 
-		go func() {
+		go func(path string, root string, wg *sync.WaitGroup) {
 			sink.SyncFile(path, root, wg)
-		}()
+		}(path, root, wg)
 	}
 
 	wg.Wait()
@@ -173,9 +173,9 @@ func (sink *Sync) SyncFileList(path string, root string) error {
 
 		wg.Add(1)
 
-		go func() {
+		go func(path string, root string, wg *sync.WaitGroup) {
 			sink.SyncFile(path, root, wg)
-		}()
+		}(path, root, wg)
 	}
 
 	wg.Wait()
@@ -375,7 +375,7 @@ func (sink *Sync) ProcessRetries(root string) bool {
 
 			wg.Add(1)
 
-			go func() {
+			go func(source string, root string, wg *sync.WaitGroup) {
 
 				atomic.AddInt64(&sink.Scheduled, 1)
 
@@ -390,7 +390,7 @@ func (sink *Sync) ProcessRetries(root string) bool {
 					atomic.AddInt64(&sink.Completed, 1)
 				})
 
-			}()
+			}(source, root, wg)
 		}
 
 		wg.Wait()
