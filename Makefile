@@ -11,7 +11,7 @@ deps: 	self
 	go get -u "github.com/whosonfirst/go-whosonfirst-log"
 	go get -u "github.com/whosonfirst/go-whosonfirst-pool"
 	go get -u "github.com/whosonfirst/go-whosonfirst-utils"
-	go get -u "github.com/whosonfirst/go-slackcat-writer"
+	go get -u "github.com/whosonfirst/go-writer-slackcat"
 	go get -u "github.com/goamz/goamz/aws"
 	go get -u "github.com/goamz/goamz/s3"
 	go get -u "github.com/jeffail/tunny"

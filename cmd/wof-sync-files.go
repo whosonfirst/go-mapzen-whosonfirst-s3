@@ -3,9 +3,9 @@ package main
 import (
 	"flag"
 	"github.com/goamz/goamz/aws"
-	"github.com/whosonfirst/go-slackcat-writer"
 	log "github.com/whosonfirst/go-whosonfirst-log"
 	"github.com/whosonfirst/go-whosonfirst-s3"
+	"github.com/whosonfirst/go-writer-slackcat"
 	"io"
 	"os"
 	"runtime"
