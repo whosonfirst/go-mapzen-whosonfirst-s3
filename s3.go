@@ -289,6 +289,12 @@ func (sink *Sync) HasChanged(source string, dest string) (ch bool, err error) {
 	rsp, err := sink.Bucket.Head(dest, headers)
 
 	if err != nil {
+
+		if e, ok := err.(*aws_s3.Error); ok && e.StatusCode == 404 {
+			sink.Logger.Debug("%s is 404 so assuming it has changed (WHOA)", dest)
+			return true, nil
+		}
+
 		sink.Logger.Error("failed to HEAD %s because %s", dest, err)
 		return false, err
 	}
