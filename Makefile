@@ -7,22 +7,22 @@ self:	prep
 	cp s3.go src/github.com/whosonfirst/go-whosonfirst-s3/
 
 deps: 	self
-	go get -u "github.com/whosonfirst/go-whosonfirst-crawl"
-	go get -u "github.com/whosonfirst/go-whosonfirst-log"
-	go get -u "github.com/whosonfirst/go-whosonfirst-pool"
-	go get -u "github.com/whosonfirst/go-whosonfirst-utils"
-	go get -u "github.com/whosonfirst/go-writer-slackcat"
-	go get -u "github.com/goamz/goamz/aws"
-	go get -u "github.com/goamz/goamz/s3"
-	go get -u "github.com/jeffail/tunny"
+	@GOPATH=$(shell pwd) go get -u "github.com/whosonfirst/go-whosonfirst-crawl"
+	@GOPATH=$(shell pwd) go get -u "github.com/whosonfirst/go-whosonfirst-log"
+	@GOPATH=$(shell pwd) go get -u "github.com/whosonfirst/go-whosonfirst-pool"
+	@GOPATH=$(shell pwd) go get -u "github.com/whosonfirst/go-whosonfirst-utils"
+	@GOPATH=$(shell pwd) go get -u "github.com/whosonfirst/go-writer-slackcat"
+	@GOPATH=$(shell pwd) go get -u "github.com/goamz/goamz/aws"
+	@GOPATH=$(shell pwd) go get -u "github.com/goamz/goamz/s3"
+	@GOPATH=$(shell pwd) go get -u "github.com/jeffail/tunny"
 
 bin:	sync-dirs sync-files
 
 sync-dirs: fmt self
-	go build -o bin/wof-sync-dirs cmd/wof-sync-dirs.go
+	@GOPATH=$(shell pwd) go build -o bin/wof-sync-dirs cmd/wof-sync-dirs.go
 
 sync-files: fmt self
-	go build -o bin/wof-sync-files cmd/wof-sync-files.go
+	@GOPATH=$(shell pwd) go build -o bin/wof-sync-files cmd/wof-sync-files.go
 
 fmt:
 	go fmt *.go 
