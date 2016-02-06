@@ -165,17 +165,29 @@ func (sink *Sync) SyncFileList(path string, root string) error {
 
 	scanner := bufio.NewScanner(file)
 
+	count := 100000
+	ch := make(chan bool, count)
+
+	go func() {
+		for i := 0; i < count; i++ {
+			ch <- true
+		}
+	}()
+
 	wg := new(sync.WaitGroup)
 
 	for scanner.Scan() {
+
+		<-ch
 
 		path := scanner.Text()
 
 		wg.Add(1)
 
-		go func(path string, root string, wg *sync.WaitGroup) {
+		go func(path string, root string, wg *sync.WaitGroup, ch chan bool) {
 			sink.SyncFile(path, root, wg)
-		}(path, root, wg)
+			ch <- true
+		}(path, root, wg, ch)
 	}
 
 	wg.Wait()
@@ -285,6 +297,8 @@ func (sink *Sync) DoSyncFile(source string, dest string) error {
 
 func (sink *Sync) HasChanged(source string, dest string) (ch bool, err error) {
 
+	sink.Logger.Debug("HEAD %s", dest)
+
 	headers := make(http.Header)
 	rsp, err := sink.Bucket.Head(dest, headers)
 
@@ -308,6 +322,8 @@ func (sink *Sync) HasChanged(source string, dest string) (ch bool, err error) {
 
 	etag := rsp.Header.Get("Etag")
 	remote_hash := strings.Replace(etag, "\"", "", -1)
+
+	sink.Logger.Debug("local hash is %s remote hash is %s", local_hash, remote_hash)
 
 	if local_hash == remote_hash {
 		return false, nil
