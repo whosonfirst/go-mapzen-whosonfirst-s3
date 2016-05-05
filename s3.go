@@ -400,7 +400,7 @@ func (sink *Sync) ProcessRetries(root string) bool {
 
 			source := r.StringValue()
 
-			wg.Add(1)
+			// wg.Add(1)
 
 			go func(source string, root string, wg *sync.WaitGroup) {
 
