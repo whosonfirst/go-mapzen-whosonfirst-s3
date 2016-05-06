@@ -94,8 +94,6 @@ func (sink *Sync) SyncDirectory(root string) error {
 
 	callback := func(source string, info os.FileInfo) error {
 
-		// wg.Add(1)
-
 		if info.IsDir() {
 			return nil
 		}
@@ -131,8 +129,6 @@ func (sink *Sync) SyncFiles(files []string, root string) error {
 	wg := new(sync.WaitGroup)
 
 	for _, path := range files {
-
-		// wg.Add(1)
 
 		go func(path string, root string, wg *sync.WaitGroup) {
 			sink.SyncFile(path, root, wg)
@@ -181,8 +177,6 @@ func (sink *Sync) SyncFileList(path string, root string) error {
 		<-ch
 
 		path := scanner.Text()
-
-		// wg.Add(1)
 
 		go func(path string, root string, wg *sync.WaitGroup, ch chan bool) {
 			sink.SyncFile(path, root, wg)
@@ -262,8 +256,6 @@ func (sink *Sync) SyncFile(source string, root string, wg *sync.WaitGroup) error
 	})
 
 	if err != nil {
-		// wg.Done()
-
 		atomic.AddInt64(&sink.Error, 1)
 		sink.Logger.Error("failed to schedule %s for processing, because %v", source, err)
 		return err
@@ -399,8 +391,6 @@ func (sink *Sync) ProcessRetries(root string) bool {
 			}
 
 			source := r.StringValue()
-
-			// wg.Add(1)
 
 			go func(source string, root string, wg *sync.WaitGroup) {
 
