@@ -6,6 +6,11 @@ self:	prep
 	mkdir -p src/github.com/whosonfirst/go-whosonfirst-s3
 	cp s3.go src/github.com/whosonfirst/go-whosonfirst-s3/
 
+rmdeps:
+	if test -d src; then rm -rf src; fi 
+
+build:	rmdeps deps bin
+
 deps: 	self
 	@GOPATH=$(shell pwd) go get -u "github.com/whosonfirst/go-whosonfirst-crawl"
 	@GOPATH=$(shell pwd) go get -u "github.com/whosonfirst/go-whosonfirst-log"
