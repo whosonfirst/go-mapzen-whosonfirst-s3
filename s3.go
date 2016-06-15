@@ -177,10 +177,18 @@ func (sink *Sync) SyncFileList(path string, root string) error {
 		<-ch
 
 		path := scanner.Text()
+		sink.Logger.Debug("schedule %s for sync", path)
+
+		wg.Add(1)
 
 		go func(path string, root string, wg *sync.WaitGroup, ch chan bool) {
+
+			defer wg.Done()
+
 			sink.SyncFile(path, root, wg)
 			ch <- true
+
+			sink.Logger.Debug("completed sync for %s", path)
 		}(path, root, wg, ch)
 	}
 
