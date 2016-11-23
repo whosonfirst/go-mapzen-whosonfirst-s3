@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/jeffail/tunny"
@@ -44,7 +45,7 @@ type Sync struct {
 	MaxRetries    float64 // max percentage of errors over scheduled
 }
 
-func NewSync(region string, acl string, bucket string, prefix string, procs int, debug bool, logger *log.WOFLogger) *Sync {
+func NewSync(creds *credentials.Credentials, region string, acl string, bucket string, prefix string, procs int, debug bool, logger *log.WOFLogger) *Sync {
 
 	logger.Info("creating a new Sync thing-y with %d processes", procs)
 
@@ -54,20 +55,14 @@ func NewSync(region string, acl string, bucket string, prefix string, procs int,
 
 	retries := pool.NewLIFOPool()
 
-	cfg := &aws.Config{
-		Region: aws.String(region),
-		// Credentials: credentials.NewSharedCredentials("", s3cfg.Credentials),
+	cfg := aws.NewConfig()
+	cfg.WithRegion(region)
+
+	if creds != nil {
+		cfg.WithCredentials(creds)
 	}
 
 	sess := session.New(cfg)
-
-	/*
-	        _, err := sess.Config.Credentials.Get()
-
-		if err != nil {
-		   return nil, err
-		   }
-	*/
 
 	svc := s3.New(sess)
 
@@ -94,7 +89,7 @@ func NewSync(region string, acl string, bucket string, prefix string, procs int,
 
 func WOFSync(bucket string, prefix string, procs int, debug bool, logger *log.WOFLogger) *Sync {
 
-	return NewSync("us-east-1", "public-read", bucket, prefix, procs, debug, logger)
+	return NewSync(nil, "us-east-1", "public-read", bucket, prefix, procs, debug, logger)
 }
 
 func (sink *Sync) SyncDirectory(root string) error {
