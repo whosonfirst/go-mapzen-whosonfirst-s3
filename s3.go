@@ -3,21 +3,19 @@ package s3
 // https://github.com/aws/aws-sdk-go
 // https://docs.aws.amazon.com/sdk-for-go/api/service/s3.html
 
-// https://github.com/goamz/goamz/blob/master/aws/aws.go
-// https://github.com/goamz/goamz/blob/master/s3/s3.go
-
 import (
 	"bufio"
+	"bytes"
 	"fmt"
-	"github.com/goamz/goamz/aws"
-	aws_s3 "github.com/goamz/goamz/s3"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/jeffail/tunny"
 	"github.com/whosonfirst/go-whosonfirst-crawl"
 	log "github.com/whosonfirst/go-whosonfirst-log"
 	pool "github.com/whosonfirst/go-whosonfirst-pool"
 	utils "github.com/whosonfirst/go-whosonfirst-utils"
 	"io/ioutil"
-	"net/http"
 	"os"
 	"path"
 	"runtime"
@@ -28,8 +26,9 @@ import (
 )
 
 type Sync struct {
-	ACL           aws_s3.ACL
-	Bucket        aws_s3.Bucket
+	Service       *s3.S3
+	ACL           string
+	Bucket        string
 	Prefix        string
 	WorkPool      tunny.WorkPool
 	Logger        *log.WOFLogger
@@ -45,7 +44,7 @@ type Sync struct {
 	MaxRetries    float64 // max percentage of errors over scheduled
 }
 
-func NewSync(auth aws.Auth, region aws.Region, acl aws_s3.ACL, bucket string, prefix string, procs int, debug bool, logger *log.WOFLogger) *Sync {
+func NewSync(region string, acl string, bucket string, prefix string, procs int, debug bool, logger *log.WOFLogger) *Sync {
 
 	logger.Info("creating a new Sync thing-y with %d processes", procs)
 
@@ -55,14 +54,28 @@ func NewSync(auth aws.Auth, region aws.Region, acl aws_s3.ACL, bucket string, pr
 
 	retries := pool.NewLIFOPool()
 
-	s := aws_s3.New(auth, region)
-	b := s.Bucket(bucket)
+	cfg := &aws.Config{
+		Region: aws.String(region),
+		// Credentials: credentials.NewSharedCredentials("", s3cfg.Credentials),
+	}
+
+	sess := session.New(cfg)
+
+	/*
+	        _, err := sess.Config.Credentials.Get()
+
+		if err != nil {
+		   return nil, err
+		   }
+	*/
+
+	svc := s3.New(sess)
 
 	ttp := new(time.Duration)
 
 	return &Sync{
-		ACL:           acl,
-		Bucket:        *b,
+		Service:       svc,
+		Bucket:        bucket,
 		Prefix:        prefix,
 		WorkPool:      *workpool,
 		Debug:         debug,
@@ -79,9 +92,9 @@ func NewSync(auth aws.Auth, region aws.Region, acl aws_s3.ACL, bucket string, pr
 	}
 }
 
-func WOFSync(auth aws.Auth, bucket string, prefix string, procs int, debug bool, logger *log.WOFLogger) *Sync {
+func WOFSync(bucket string, prefix string, procs int, debug bool, logger *log.WOFLogger) *Sync {
 
-	return NewSync(auth, aws.USEast, aws_s3.PublicRead, bucket, prefix, procs, debug, logger)
+	return NewSync("us-east-1", "public-read", bucket, prefix, procs, debug, logger)
 }
 
 func (sink *Sync) SyncDirectory(root string) error {
@@ -286,9 +299,14 @@ func (sink *Sync) DoSyncFile(source string, dest string) error {
 
 	sink.Logger.Debug("PUT %s as %s", dest, sink.ACL)
 
-	o := aws_s3.Options{}
+	params := &s3.PutObjectInput{
+		Bucket: aws.String(sink.Bucket),
+		Key:    aws.String(dest),
+		Body:   bytes.NewReader(body),
+		ACL:    aws.String(sink.ACL),
+	}
 
-	err = sink.Bucket.Put(dest, body, "text/plain", sink.ACL, o)
+	_, err = sink.Service.PutObject(params)
 
 	if err != nil {
 		sink.Logger.Error("failed to PUT %s, because '%s'", dest, err)
@@ -300,19 +318,26 @@ func (sink *Sync) DoSyncFile(source string, dest string) error {
 
 func (sink *Sync) HasChanged(source string, dest string) (ch bool, err error) {
 
-	return true, nil
-
 	sink.Logger.Debug("HEAD %s", dest)
 
-	headers := make(http.Header)
-	rsp, err := sink.Bucket.Head(dest, headers)
+	// https://docs.aws.amazon.com/sdk-for-go/api/service/s3/#HeadObjectInput
+	// https://docs.aws.amazon.com/sdk-for-go/api/service/s3/#HeadObjectOutput
+
+	params := &s3.HeadObjectInput{
+		Bucket: aws.String(sink.Bucket),
+		Key:    aws.String(source),
+	}
+
+	rsp, err := sink.Service.HeadObject(params)
 
 	if err != nil {
 
-		if e, ok := err.(*aws_s3.Error); ok && e.StatusCode == 404 {
-			sink.Logger.Debug("%s is 404 so assuming it has changed (WHOA)", dest)
-			return true, nil
-		}
+		/*
+			if e, ok := err.(*aws_s3.Error); ok && e.StatusCode == 404 {
+				sink.Logger.Debug("%s is 404 so assuming it has changed (WHOA)", dest)
+				return true, nil
+			}
+		*/
 
 		sink.Logger.Error("failed to HEAD %s because %s", dest, err)
 		return false, err
@@ -325,7 +350,7 @@ func (sink *Sync) HasChanged(source string, dest string) (ch bool, err error) {
 		return false, err
 	}
 
-	etag := rsp.Header.Get("Etag")
+	etag := *rsp.ETag
 	remote_hash := strings.Replace(etag, "\"", "", -1)
 
 	sink.Logger.Debug("local hash is %s remote hash is %s", local_hash, remote_hash)
@@ -345,14 +370,7 @@ func (sink *Sync) HasChanged(source string, dest string) (ch bool, err error) {
 	}
 
 	mtime_local := info.ModTime()
-
-	last_mod := rsp.Header.Get("Last-Modified")
-	mtime_remote, err := time.Parse(time.RFC1123, last_mod)
-
-	if err != nil {
-		sink.Logger.Error("failed to parse timestamp %s because %s", last_mod, err)
-		return false, err
-	}
+	mtime_remote := *rsp.LastModified
 
 	// Because who remembers this stuff anyway...
 	// func (t Time) Before(u Time) bool

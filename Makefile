@@ -35,6 +35,9 @@ bin:	self
 	@GOPATH=$(shell pwd) go build -o bin/wof-sync-dirs cmd/wof-sync-dirs.go
 	@GOPATH=$(shell pwd) go build -o bin/wof-sync-files cmd/wof-sync-files.go
 
+test: 	self
+	@GOPATH=$(shell pwd) go build -o bin/test cmd/test.go
+
 fmt:
 	go fmt *.go 
 	go fmt cmd/*.go

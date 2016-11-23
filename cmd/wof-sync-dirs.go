@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"github.com/goamz/goamz/aws"
 	log "github.com/whosonfirst/go-whosonfirst-log"
 	"github.com/whosonfirst/go-whosonfirst-s3"
 	"github.com/whosonfirst/go-writer-slackcat"
@@ -43,18 +42,12 @@ func main() {
 		os.Setenv("AWS_CREDENTIAL_FILE", *credentials)
 	}
 
-	auth, err := aws.SharedAuth()
-
-	if err != nil {
-		panic(err)
-	}
-
 	logger := log.NewWOFLogger("[wof-sync-dirs] ")
 
 	writer := io.MultiWriter(os.Stdout)
 	logger.AddLogger(writer, *loglevel)
 
-	s := s3.WOFSync(auth, *bucket, *prefix, *procs, *debug, logger)
+	s := s3.WOFSync(*bucket, *prefix, *procs, *debug, logger)
 	s.MonitorStatus()
 
 	err = s.SyncDirectory(*root)
