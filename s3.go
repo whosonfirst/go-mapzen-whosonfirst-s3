@@ -34,6 +34,7 @@ type Sync struct {
 	WorkPool      tunny.WorkPool
 	Logger        *log.WOFLogger
 	Debug         bool
+	DryRun        bool
 	Success       int64
 	Error         int64
 	Skipped       int64
@@ -47,12 +48,9 @@ type Sync struct {
 
 func NewSync(creds *credentials.Credentials, region string, acl string, bucket string, prefix string, procs int, debug bool, logger *log.WOFLogger) *Sync {
 
-	logger.Info("creating a new Sync thing-y with %d processes", procs)
-
 	runtime.GOMAXPROCS(procs)
 
 	workpool, _ := tunny.CreatePoolGeneric(procs).Open()
-
 	retries := pool.NewLIFOPool()
 
 	cfg := aws.NewConfig()
@@ -74,6 +72,7 @@ func NewSync(creds *credentials.Credentials, region string, acl string, bucket s
 		Prefix:        prefix,
 		WorkPool:      *workpool,
 		Debug:         debug,
+		DryRun:        false,
 		Logger:        logger,
 		Scheduled:     0,
 		Completed:     0,
@@ -170,11 +169,11 @@ func (sink *Sync) SyncFileList(path string, root string) error {
 	scanner := bufio.NewScanner(file)
 
 	count := 100000
-	ch := make(chan bool, count)
+	throttle := make(chan bool, count)
 
 	go func() {
 		for i := 0; i < count; i++ {
-			ch <- true
+			throttle <- true
 		}
 	}()
 
@@ -182,22 +181,24 @@ func (sink *Sync) SyncFileList(path string, root string) error {
 
 	for scanner.Scan() {
 
-		<-ch
+		<-throttle
 
 		path := scanner.Text()
 		sink.Logger.Debug("schedule %s for sync", path)
 
 		wg.Add(1)
 
-		go func(path string, root string, wg *sync.WaitGroup, ch chan bool) {
+		go func(path string, root string, wg *sync.WaitGroup, throttle chan bool) {
 
-			defer wg.Done()
+			defer func() {
+				wg.Done()
+				throttle <- true
+			}()
 
 			sink.SyncFile(path, root, wg)
-			ch <- true
-
 			sink.Logger.Debug("completed sync for %s", path)
-		}(path, root, wg, ch)
+
+		}(path, root, wg, throttle)
 	}
 
 	wg.Wait()
@@ -237,6 +238,7 @@ func (sink *Sync) SyncFile(source string, root string, wg *sync.WaitGroup) error
 		change, ch_err := sink.HasChanged(source, dest)
 
 		if ch_err != nil {
+
 			atomic.AddInt64(&sink.Completed, 1)
 			atomic.AddInt64(&sink.Error, 1)
 			sink.Logger.Warning("failed to determine whether %s had changed, because '%s'", source, ch_err)
@@ -246,6 +248,7 @@ func (sink *Sync) SyncFile(source string, root string, wg *sync.WaitGroup) error
 		}
 
 		if sink.Debug == true {
+
 			atomic.AddInt64(&sink.Completed, 1)
 			atomic.AddInt64(&sink.Skipped, 1)
 			sink.Logger.Debug("has %s changed? the answer is %v but does it really matter since debugging is enabled?", source, change)
@@ -253,6 +256,7 @@ func (sink *Sync) SyncFile(source string, root string, wg *sync.WaitGroup) error
 		}
 
 		if !change {
+
 			atomic.AddInt64(&sink.Completed, 1)
 			atomic.AddInt64(&sink.Skipped, 1)
 			sink.Logger.Debug("%s has not changed, skipping", source)
@@ -301,6 +305,11 @@ func (sink *Sync) DoSyncFile(source string, dest string) error {
 		ACL:    aws.String(sink.ACL),
 	}
 
+	if sink.DryRun {
+		sink.Logger.Info("running in dryrun mode so we'll just assume that %s was cloned", dest)
+		return nil
+	}
+
 	_, err = sink.Service.PutObject(params)
 
 	if err != nil {
@@ -327,12 +336,7 @@ func (sink *Sync) HasChanged(source string, dest string) (ch bool, err error) {
 
 	if err != nil {
 
-		/*
-			if e, ok := err.(*aws_s3.Error); ok && e.StatusCode == 404 {
-				sink.Logger.Debug("%s is 404 so assuming it has changed (WHOA)", dest)
-				return true, nil
-			}
-		*/
+		// to do : check 404-iness
 
 		sink.Logger.Error("failed to HEAD %s because %s", dest, err)
 		return false, err
