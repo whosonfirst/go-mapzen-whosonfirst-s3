@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
@@ -34,7 +35,6 @@ type Sync struct {
 	WorkPool      tunny.WorkPool
 	Logger        *log.WOFLogger
 	Debug         bool
-	DryRun        bool
 	Success       int64
 	Error         int64
 	Skipped       int64
@@ -72,7 +72,6 @@ func NewSync(creds *credentials.Credentials, region string, acl string, bucket s
 		Prefix:        prefix,
 		WorkPool:      *workpool,
 		Debug:         debug,
-		DryRun:        false,
 		Logger:        logger,
 		Scheduled:     0,
 		Completed:     0,
@@ -233,7 +232,7 @@ func (sink *Sync) SyncFile(source string, root string, wg *sync.WaitGroup) error
 		// which is a potential waste of time and resource. Or maybe we just
 		// don't care? (20150930/thisisaaronland)
 
-		sink.Logger.Debug("Looking for changes to %s (%s)", dest, sink.Prefix)
+		sink.Logger.Debug("Looking for changes to %s (prefix: %s)", dest, sink.Prefix)
 
 		change, ch_err := sink.HasChanged(source, dest)
 
@@ -305,8 +304,8 @@ func (sink *Sync) DoSyncFile(source string, dest string) error {
 		ACL:    aws.String(sink.ACL),
 	}
 
-	if sink.DryRun {
-		sink.Logger.Info("running in dryrun mode so we'll just assume that %s was cloned", dest)
+	if sink.Debug {
+		sink.Logger.Info("running in debug mode so we'll just assume that %s was cloned", dest)
 		return nil
 	}
 
@@ -322,7 +321,7 @@ func (sink *Sync) DoSyncFile(source string, dest string) error {
 
 func (sink *Sync) HasChanged(source string, dest string) (ch bool, err error) {
 
-	sink.Logger.Debug("HEAD %s", dest)
+	sink.Logger.Debug("HEAD s3://%s/%s", sink.Bucket, dest)
 
 	// https://docs.aws.amazon.com/sdk-for-go/api/service/s3/#HeadObjectInput
 	// https://docs.aws.amazon.com/sdk-for-go/api/service/s3/#HeadObjectOutput
@@ -332,11 +331,19 @@ func (sink *Sync) HasChanged(source string, dest string) (ch bool, err error) {
 		Key:    aws.String(source),
 	}
 
+	// PLEASE FIX ME: why does this always return 404?
+	// (20161123/thisisaaronland)
+
 	rsp, err := sink.Service.HeadObject(params)
 
 	if err != nil {
 
-		// to do : check 404-iness
+		aws_err := err.(awserr.Error)
+
+		if aws_err.Code() == "NotFound" {
+			sink.Logger.Error("%s is 404", dest)
+			return true, nil
+		}
 
 		sink.Logger.Error("failed to HEAD %s because %s", dest, err)
 		return false, err

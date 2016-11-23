@@ -44,6 +44,10 @@ func main() {
 		os.Setenv("AWS_CREDENTIAL_FILE", *credentials)
 	}
 
+	if *debug {
+		*loglevel = "debug"
+	}
+
 	logger := log.NewWOFLogger("[wof-sync-files] ")
 
 	writer := io.MultiWriter(os.Stdout)

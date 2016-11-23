@@ -6,6 +6,7 @@ import (
 	"github.com/whosonfirst/go-whosonfirst-s3"
 	"github.com/whosonfirst/go-writer-slackcat"
 	"io"
+	golog "log"
 	"os"
 	"runtime"
 )
@@ -25,21 +26,25 @@ func main() {
 	flag.Parse()
 
 	if *root == "" {
-		panic("missing root to sync")
+		golog.Fatal("missing root to sync")
 	}
 
 	_, err := os.Stat(*root)
 
 	if os.IsNotExist(err) {
-		panic("root does not exist")
+		golog.Fatal("root does not exist")
 	}
 
 	if *bucket == "" {
-		panic("missing bucket")
+		golog.Fatal("missing bucket")
 	}
 
 	if *credentials != "" {
 		os.Setenv("AWS_CREDENTIAL_FILE", *credentials)
+	}
+
+	if *debug {
+		*loglevel = "debug"
 	}
 
 	logger := log.NewWOFLogger("[wof-sync-dirs] ")
