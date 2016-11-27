@@ -135,10 +135,12 @@ func (sink *Sync) SyncFiles(files []string, root string) error {
 	wg := new(sync.WaitGroup)
 
 	for _, path := range files {
+	
+		sink.Logger.Debug("sync %s", path)
 
-		go func(path string, root string, wg *sync.WaitGroup) {
+		// go func(path string, root string, wg *sync.WaitGroup) {
 			sink.SyncFile(path, root, wg)
-		}(path, root, wg)
+		// }(path, root, wg)
 	}
 
 	wg.Wait()
@@ -341,7 +343,7 @@ func (sink *Sync) HasChanged(source string, dest string) (ch bool, err error) {
 		aws_err := err.(awserr.Error)
 
 		if aws_err.Code() == "NotFound" {
-			sink.Logger.Error("%s is 404", dest)
+			sink.Logger.Debug("%s is 404", dest)
 			return true, nil
 		}
 
