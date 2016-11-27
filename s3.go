@@ -69,6 +69,7 @@ func NewSync(creds *credentials.Credentials, region string, acl string, bucket s
 
 	return &Sync{
 		Service:       svc,
+		ACL:           acl,
 		Bucket:        bucket,
 		Prefix:        prefix,
 		WorkPool:      *workpool,
@@ -138,7 +139,7 @@ func (sink *Sync) SyncFiles(files []string, root string) error {
 
 	for _, path := range files {
 
-		sink.Logger.Debug("sync %s", path)
+		sink.Logger.Debug("Sync %s", path)
 		sink.SyncFile(path, root, wg)
 	}
 
@@ -278,7 +279,7 @@ func (sink *Sync) SyncFile(source string, root string, wg *sync.WaitGroup) error
 
 func (sink *Sync) DoSyncFile(source string, dest string) error {
 
-	sink.Logger.Debug("prepare %s for syncing", source)
+	sink.Logger.Debug("Prepare %s for syncing", source)
 
 	body, err := ioutil.ReadFile(source)
 
@@ -297,14 +298,14 @@ func (sink *Sync) DoSyncFile(source string, dest string) error {
 	}
 
 	if sink.Dryrun {
-		sink.Logger.Info("running in debug mode so we'll just assume that %s was cloned", dest)
+		sink.Logger.Info("Running in dryrun mode so we'll just assume that %s was cloned", dest)
 		return nil
 	}
 
 	_, err = sink.Service.PutObject(params)
 
 	if err != nil {
-		sink.Logger.Error("failed to PUT %s, because '%s'", dest, err)
+		sink.Logger.Error("Failed to PUT %s, because '%s'", dest, err)
 		return err
 	}
 
