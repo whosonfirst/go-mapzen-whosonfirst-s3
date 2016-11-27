@@ -329,8 +329,10 @@ func (sink *Sync) HasChanged(source string, dest string) (ch bool, err error) {
 
 	params := &s3.HeadObjectInput{
 		Bucket: aws.String(sink.Bucket),
-		Key:    aws.String(source),
+		Key:    aws.String(dest),
 	}
+
+	sink.Logger.Debug(params.GoString())
 
 	rsp, err := sink.Service.HeadObject(params)
 
