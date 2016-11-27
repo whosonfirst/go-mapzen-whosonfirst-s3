@@ -35,6 +35,7 @@ type Sync struct {
 	WorkPool      tunny.WorkPool
 	Logger        *log.WOFLogger
 	Debug         bool
+	Dryrun	      bool
 	Success       int64
 	Error         int64
 	Skipped       int64
@@ -72,6 +73,7 @@ func NewSync(creds *credentials.Credentials, region string, acl string, bucket s
 		Prefix:        prefix,
 		WorkPool:      *workpool,
 		Debug:         debug,
+		Dryrun:        false,
 		Logger:        logger,
 		Scheduled:     0,
 		Completed:     0,
@@ -135,12 +137,9 @@ func (sink *Sync) SyncFiles(files []string, root string) error {
 	wg := new(sync.WaitGroup)
 
 	for _, path := range files {
-	
-		sink.Logger.Debug("sync %s", path)
 
-		// go func(path string, root string, wg *sync.WaitGroup) {
-			sink.SyncFile(path, root, wg)
-		// }(path, root, wg)
+		sink.Logger.Debug("sync %s", path)
+		sink.SyncFile(path, root, wg)
 	}
 
 	wg.Wait()
@@ -306,7 +305,7 @@ func (sink *Sync) DoSyncFile(source string, dest string) error {
 		ACL:    aws.String(sink.ACL),
 	}
 
-	if sink.Debug {
+	if sink.Dryrun {
 		sink.Logger.Info("running in debug mode so we'll just assume that %s was cloned", dest)
 		return nil
 	}
@@ -333,9 +332,6 @@ func (sink *Sync) HasChanged(source string, dest string) (ch bool, err error) {
 		Key:    aws.String(source),
 	}
 
-	// PLEASE FIX ME: why does this always return 404?
-	// (20161123/thisisaaronland)
-
 	rsp, err := sink.Service.HeadObject(params)
 
 	if err != nil {
@@ -343,7 +339,7 @@ func (sink *Sync) HasChanged(source string, dest string) (ch bool, err error) {
 		aws_err := err.(awserr.Error)
 
 		if aws_err.Code() == "NotFound" {
-			sink.Logger.Debug("%s is 404", dest)
+			sink.Logger.Info("%s is 404", dest)
 			return true, nil
 		}
 
