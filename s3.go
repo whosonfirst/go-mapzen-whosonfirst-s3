@@ -185,7 +185,7 @@ func (sink *Sync) SyncFileList(path string, root string) error {
 		<-throttle
 
 		path := scanner.Text()
-		sink.Logger.Debug("schedule %s for sync", path)
+		sink.Logger.Debug("Schedule %s for sync", path)
 
 		wg.Add(1)
 
@@ -197,7 +197,7 @@ func (sink *Sync) SyncFileList(path string, root string) error {
 			}()
 
 			sink.SyncFile(path, root, wg)
-			sink.Logger.Debug("completed sync for %s", path)
+			sink.Logger.Debug("Completed sync for %s", path)
 
 		}(path, root, wg, throttle)
 	}
@@ -214,7 +214,7 @@ func (sink *Sync) SyncFileList(path string, root string) error {
 
 func (sink *Sync) SyncFile(source string, root string, wg *sync.WaitGroup) error {
 
-	sink.Logger.Debug("schedule %s for processing", source)
+	sink.Logger.Debug("Schedule %s for processing", source)
 	atomic.AddInt64(&sink.Scheduled, 1)
 
 	_, err := sink.WorkPool.SendWork(func() {
@@ -270,7 +270,7 @@ func (sink *Sync) SyncFile(source string, root string, wg *sync.WaitGroup) error
 
 	if err != nil {
 		atomic.AddInt64(&sink.Error, 1)
-		sink.Logger.Error("failed to schedule %s for processing, because %v", source, err)
+		sink.Logger.Error("Failed to schedule %s for processing, because %v", source, err)
 		return err
 	}
 
@@ -337,21 +337,21 @@ func (sink *Sync) HasChanged(source string, dest string) (ch bool, err error) {
 			return true, nil
 		}
 
-		sink.Logger.Error("failed to HEAD %s because %s", dest, err)
+		sink.Logger.Error("Failed to HEAD %s because %s", dest, err)
 		return false, err
 	}
 
 	local_hash, err := utils.HashFile(source)
 
 	if err != nil {
-		sink.Logger.Warning("failed to hash %s, because %v", source, err)
+		sink.Logger.Warning("Failed to hash %s, because %v", source, err)
 		return false, err
 	}
 
 	etag := *rsp.ETag
 	remote_hash := strings.Replace(etag, "\"", "", -1)
 
-	sink.Logger.Debug("local hash is %s remote hash is %s", local_hash, remote_hash)
+	sink.Logger.Debug("Local hash is %s remote hash is %s", local_hash, remote_hash)
 
 	if local_hash == remote_hash {
 		return false, nil
@@ -363,7 +363,7 @@ func (sink *Sync) HasChanged(source string, dest string) (ch bool, err error) {
 	info, err := os.Stat(source)
 
 	if err != nil {
-		sink.Logger.Error("failed to stat %s because %s", source, err)
+		sink.Logger.Error("Failed to stat %s because %s", source, err)
 		return false, err
 	}
 
@@ -374,11 +374,11 @@ func (sink *Sync) HasChanged(source string, dest string) (ch bool, err error) {
 	// func (t Time) Before(u Time) bool
 	// Before reports whether the time instant t is before u.
 
-	sink.Logger.Debug("local %s %s", mtime_local, source)
-	sink.Logger.Debug("remote %s %s", mtime_remote, dest)
+	sink.Logger.Debug("Local %s %s", mtime_local, source)
+	sink.Logger.Debug("Remote %s %s", mtime_remote, dest)
 
 	if mtime_local.Before(mtime_remote) {
-		sink.Logger.Warning("remote copy of %s has a more recent modification date (local: %s remote: %s)", source, mtime_local, mtime_remote)
+		sink.Logger.Warning("Remote copy of %s has a more recent modification date (local: %s remote: %s)", source, mtime_local, mtime_remote)
 		return false, nil
 	}
 
@@ -410,7 +410,7 @@ func (sink *Sync) ProcessRetries(root string) bool {
 			r, ok := sink.Retries.Pop()
 
 			if !ok {
-				sink.Logger.Error("failed to pop retries because... computers?")
+				sink.Logger.Error("Failed to pop retries because... computers?")
 				break
 			}
 
@@ -424,7 +424,7 @@ func (sink *Sync) ProcessRetries(root string) bool {
 
 					atomic.AddInt64(&sink.Retried, 1)
 
-					sink.Logger.Info("retry syncing %s", source)
+					sink.Logger.Info("Retry syncing %s", source)
 
 					sink.SyncFile(source, root, wg)
 
