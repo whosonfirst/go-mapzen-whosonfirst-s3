@@ -35,7 +35,7 @@ type Sync struct {
 	WorkPool      tunny.WorkPool
 	Logger        *log.WOFLogger
 	Debug         bool
-	Dryrun	      bool
+	Dryrun        bool
 	Success       int64
 	Error         int64
 	Skipped       int64
@@ -213,6 +213,7 @@ func (sink *Sync) SyncFileList(path string, root string) error {
 
 func (sink *Sync) SyncFile(source string, root string, wg *sync.WaitGroup) error {
 
+	sink.Logger.Debug("schedule %s for processing", source)
 	atomic.AddInt64(&sink.Scheduled, 1)
 
 	_, err := sink.WorkPool.SendWork(func() {
@@ -247,14 +248,6 @@ func (sink *Sync) SyncFile(source string, root string, wg *sync.WaitGroup) error
 			return
 		}
 
-		if sink.Debug == true {
-
-			atomic.AddInt64(&sink.Completed, 1)
-			atomic.AddInt64(&sink.Skipped, 1)
-			sink.Logger.Debug("has %s changed? the answer is %v but does it really matter since debugging is enabled?", source, change)
-			return
-		}
-
 		if !change {
 
 			atomic.AddInt64(&sink.Completed, 1)
@@ -264,6 +257,7 @@ func (sink *Sync) SyncFile(source string, root string, wg *sync.WaitGroup) error
 		}
 
 		err := sink.DoSyncFile(source, dest)
+		atomic.AddInt64(&sink.Completed, 1)
 
 		if err != nil {
 			sink.Retries.Push(&pool.PoolString{String: source})
@@ -271,8 +265,6 @@ func (sink *Sync) SyncFile(source string, root string, wg *sync.WaitGroup) error
 		} else {
 			atomic.AddInt64(&sink.Success, 1)
 		}
-
-		atomic.AddInt64(&sink.Completed, 1)
 	})
 
 	if err != nil {
@@ -281,7 +273,6 @@ func (sink *Sync) SyncFile(source string, root string, wg *sync.WaitGroup) error
 		return err
 	}
 
-	sink.Logger.Debug("schedule %s for processing", source)
 	return nil
 }
 
@@ -332,7 +323,7 @@ func (sink *Sync) HasChanged(source string, dest string) (ch bool, err error) {
 		Key:    aws.String(dest),
 	}
 
-	sink.Logger.Debug(params.GoString())
+	// sink.Logger.Debug(params.GoString())
 
 	rsp, err := sink.Service.HeadObject(params)
 
@@ -469,7 +460,7 @@ func (sink *Sync) MonitorStatus() {
 		}
 
 		sink.Logger.Info(sink.StatusReport())
-		sink.Logger.Info("monitoring complete")
+		sink.Logger.Info("Monitoring complete")
 	}()
 }
 
