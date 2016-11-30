@@ -1,3 +1,6 @@
+CWD=$(shell pwd)
+GOPATH := $(CWD)
+
 prep:
 	if test -d pkg; then rm -rf pkg; fi
 
@@ -18,9 +21,8 @@ deps: 	rmdeps
 	@GOPATH=$(shell pwd) go get -u "github.com/whosonfirst/go-whosonfirst-pool"
 	@GOPATH=$(shell pwd) go get -u "github.com/whosonfirst/go-whosonfirst-utils"
 	@GOPATH=$(shell pwd) go get -u "github.com/whosonfirst/go-writer-slackcat"
-	@GOPATH=$(shell pwd) go get -u "github.com/goamz/goamz/aws"
-	@GOPATH=$(shell pwd) go get -u "github.com/goamz/goamz/s3"
 	@GOPATH=$(shell pwd) go get -u "github.com/jeffail/tunny"
+	@GOPATH=$(GOPATH) go get -u "github.com/aws/aws-sdk-go"
 
 vendor-deps: deps
 	if test ! -d vendor; then mkdir vendor; fi
@@ -29,13 +31,12 @@ vendor-deps: deps
 	find vendor -name '.git' -print -type d -exec rm -rf {} +
 	rm -rf src
 
-bin:	sync-dirs sync-files
-
-sync-dirs: fmt self
+bin:	self
 	@GOPATH=$(shell pwd) go build -o bin/wof-sync-dirs cmd/wof-sync-dirs.go
-
-sync-files: fmt self
 	@GOPATH=$(shell pwd) go build -o bin/wof-sync-files cmd/wof-sync-files.go
+
+test: 	self
+	@GOPATH=$(shell pwd) go build -o bin/test cmd/test.go
 
 fmt:
 	go fmt *.go 

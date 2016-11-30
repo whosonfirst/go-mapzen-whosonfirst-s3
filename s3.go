@@ -3,21 +3,21 @@ package s3
 // https://github.com/aws/aws-sdk-go
 // https://docs.aws.amazon.com/sdk-for-go/api/service/s3.html
 
-// https://github.com/goamz/goamz/blob/master/aws/aws.go
-// https://github.com/goamz/goamz/blob/master/s3/s3.go
-
 import (
 	"bufio"
+	"bytes"
 	"fmt"
-	"github.com/goamz/goamz/aws"
-	aws_s3 "github.com/goamz/goamz/s3"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/jeffail/tunny"
 	"github.com/whosonfirst/go-whosonfirst-crawl"
 	log "github.com/whosonfirst/go-whosonfirst-log"
 	pool "github.com/whosonfirst/go-whosonfirst-pool"
 	utils "github.com/whosonfirst/go-whosonfirst-utils"
 	"io/ioutil"
-	"net/http"
 	"os"
 	"path"
 	"runtime"
@@ -28,12 +28,14 @@ import (
 )
 
 type Sync struct {
-	ACL           aws_s3.ACL
-	Bucket        aws_s3.Bucket
+	Service       *s3.S3
+	ACL           string
+	Bucket        string
 	Prefix        string
 	WorkPool      tunny.WorkPool
 	Logger        *log.WOFLogger
 	Debug         bool
+	Dryrun        bool
 	Success       int64
 	Error         int64
 	Skipped       int64
@@ -45,27 +47,34 @@ type Sync struct {
 	MaxRetries    float64 // max percentage of errors over scheduled
 }
 
-func NewSync(auth aws.Auth, region aws.Region, acl aws_s3.ACL, bucket string, prefix string, procs int, debug bool, logger *log.WOFLogger) *Sync {
-
-	logger.Info("creating a new Sync thing-y with %d processes", procs)
+func NewSync(creds *credentials.Credentials, region string, acl string, bucket string, prefix string, procs int, debug bool, logger *log.WOFLogger) *Sync {
 
 	runtime.GOMAXPROCS(procs)
 
 	workpool, _ := tunny.CreatePoolGeneric(procs).Open()
-
 	retries := pool.NewLIFOPool()
 
-	s := aws_s3.New(auth, region)
-	b := s.Bucket(bucket)
+	cfg := aws.NewConfig()
+	cfg.WithRegion(region)
+
+	if creds != nil {
+		cfg.WithCredentials(creds)
+	}
+
+	sess := session.New(cfg)
+
+	svc := s3.New(sess)
 
 	ttp := new(time.Duration)
 
 	return &Sync{
+		Service:       svc,
 		ACL:           acl,
-		Bucket:        *b,
+		Bucket:        bucket,
 		Prefix:        prefix,
 		WorkPool:      *workpool,
 		Debug:         debug,
+		Dryrun:        false,
 		Logger:        logger,
 		Scheduled:     0,
 		Completed:     0,
@@ -79,9 +88,9 @@ func NewSync(auth aws.Auth, region aws.Region, acl aws_s3.ACL, bucket string, pr
 	}
 }
 
-func WOFSync(auth aws.Auth, bucket string, prefix string, procs int, debug bool, logger *log.WOFLogger) *Sync {
+func WOFSync(bucket string, prefix string, procs int, debug bool, logger *log.WOFLogger) *Sync {
 
-	return NewSync(auth, aws.USEast, aws_s3.PublicRead, bucket, prefix, procs, debug, logger)
+	return NewSync(nil, "us-east-1", "public-read", bucket, prefix, procs, debug, logger)
 }
 
 func (sink *Sync) SyncDirectory(root string) error {
@@ -130,9 +139,8 @@ func (sink *Sync) SyncFiles(files []string, root string) error {
 
 	for _, path := range files {
 
-		go func(path string, root string, wg *sync.WaitGroup) {
-			sink.SyncFile(path, root, wg)
-		}(path, root, wg)
+		sink.Logger.Debug("Sync %s", path)
+		sink.SyncFile(path, root, wg)
 	}
 
 	wg.Wait()
@@ -162,11 +170,11 @@ func (sink *Sync) SyncFileList(path string, root string) error {
 	scanner := bufio.NewScanner(file)
 
 	count := 100000
-	ch := make(chan bool, count)
+	throttle := make(chan bool, count)
 
 	go func() {
 		for i := 0; i < count; i++ {
-			ch <- true
+			throttle <- true
 		}
 	}()
 
@@ -174,22 +182,24 @@ func (sink *Sync) SyncFileList(path string, root string) error {
 
 	for scanner.Scan() {
 
-		<-ch
+		<-throttle
 
 		path := scanner.Text()
-		sink.Logger.Debug("schedule %s for sync", path)
+		sink.Logger.Debug("Schedule %s for sync", path)
 
 		wg.Add(1)
 
-		go func(path string, root string, wg *sync.WaitGroup, ch chan bool) {
+		go func(path string, root string, wg *sync.WaitGroup, throttle chan bool) {
 
-			defer wg.Done()
+			defer func() {
+				wg.Done()
+				throttle <- true
+			}()
 
 			sink.SyncFile(path, root, wg)
-			ch <- true
+			sink.Logger.Debug("Completed sync for %s", path)
 
-			sink.Logger.Debug("completed sync for %s", path)
-		}(path, root, wg, ch)
+		}(path, root, wg, throttle)
 	}
 
 	wg.Wait()
@@ -204,6 +214,7 @@ func (sink *Sync) SyncFileList(path string, root string) error {
 
 func (sink *Sync) SyncFile(source string, root string, wg *sync.WaitGroup) error {
 
+	sink.Logger.Debug("Schedule %s for processing", source)
 	atomic.AddInt64(&sink.Scheduled, 1)
 
 	_, err := sink.WorkPool.SendWork(func() {
@@ -224,11 +235,12 @@ func (sink *Sync) SyncFile(source string, root string, wg *sync.WaitGroup) error
 		// which is a potential waste of time and resource. Or maybe we just
 		// don't care? (20150930/thisisaaronland)
 
-		sink.Logger.Debug("Looking for changes to %s (%s)", dest, sink.Prefix)
+		sink.Logger.Debug("Looking for changes to %s (prefix: %s)", dest, sink.Prefix)
 
 		change, ch_err := sink.HasChanged(source, dest)
 
 		if ch_err != nil {
+
 			atomic.AddInt64(&sink.Completed, 1)
 			atomic.AddInt64(&sink.Error, 1)
 			sink.Logger.Warning("failed to determine whether %s had changed, because '%s'", source, ch_err)
@@ -237,14 +249,8 @@ func (sink *Sync) SyncFile(source string, root string, wg *sync.WaitGroup) error
 			return
 		}
 
-		if sink.Debug == true {
-			atomic.AddInt64(&sink.Completed, 1)
-			atomic.AddInt64(&sink.Skipped, 1)
-			sink.Logger.Debug("has %s changed? the answer is %v but does it really matter since debugging is enabled?", source, change)
-			return
-		}
-
 		if !change {
+
 			atomic.AddInt64(&sink.Completed, 1)
 			atomic.AddInt64(&sink.Skipped, 1)
 			sink.Logger.Debug("%s has not changed, skipping", source)
@@ -252,6 +258,7 @@ func (sink *Sync) SyncFile(source string, root string, wg *sync.WaitGroup) error
 		}
 
 		err := sink.DoSyncFile(source, dest)
+		atomic.AddInt64(&sink.Completed, 1)
 
 		if err != nil {
 			sink.Retries.Push(&pool.PoolString{String: source})
@@ -259,23 +266,20 @@ func (sink *Sync) SyncFile(source string, root string, wg *sync.WaitGroup) error
 		} else {
 			atomic.AddInt64(&sink.Success, 1)
 		}
-
-		atomic.AddInt64(&sink.Completed, 1)
 	})
 
 	if err != nil {
 		atomic.AddInt64(&sink.Error, 1)
-		sink.Logger.Error("failed to schedule %s for processing, because %v", source, err)
+		sink.Logger.Error("Failed to schedule %s for processing, because %v", source, err)
 		return err
 	}
 
-	sink.Logger.Debug("schedule %s for processing", source)
 	return nil
 }
 
 func (sink *Sync) DoSyncFile(source string, dest string) error {
 
-	sink.Logger.Debug("prepare %s for syncing", source)
+	sink.Logger.Debug("Prepare %s for syncing", source)
 
 	body, err := ioutil.ReadFile(source)
 
@@ -286,12 +290,22 @@ func (sink *Sync) DoSyncFile(source string, dest string) error {
 
 	sink.Logger.Debug("PUT %s as %s", dest, sink.ACL)
 
-	o := aws_s3.Options{}
+	params := &s3.PutObjectInput{
+		Bucket: aws.String(sink.Bucket),
+		Key:    aws.String(dest),
+		Body:   bytes.NewReader(body),
+		ACL:    aws.String(sink.ACL),
+	}
 
-	err = sink.Bucket.Put(dest, body, "text/plain", sink.ACL, o)
+	if sink.Dryrun {
+		sink.Logger.Info("Running in dryrun mode so we'll just assume that %s was cloned", dest)
+		return nil
+	}
+
+	_, err = sink.Service.PutObject(params)
 
 	if err != nil {
-		sink.Logger.Error("failed to PUT %s, because '%s'", dest, err)
+		sink.Logger.Error("Failed to PUT %s, because '%s'", dest, err)
 		return err
 	}
 
@@ -300,35 +314,44 @@ func (sink *Sync) DoSyncFile(source string, dest string) error {
 
 func (sink *Sync) HasChanged(source string, dest string) (ch bool, err error) {
 
-	return true, nil
+	sink.Logger.Debug("HEAD s3://%s/%s", sink.Bucket, dest)
 
-	sink.Logger.Debug("HEAD %s", dest)
+	// https://docs.aws.amazon.com/sdk-for-go/api/service/s3/#HeadObjectInput
+	// https://docs.aws.amazon.com/sdk-for-go/api/service/s3/#HeadObjectOutput
 
-	headers := make(http.Header)
-	rsp, err := sink.Bucket.Head(dest, headers)
+	params := &s3.HeadObjectInput{
+		Bucket: aws.String(sink.Bucket),
+		Key:    aws.String(dest),
+	}
+
+	// sink.Logger.Debug(params.GoString())
+
+	rsp, err := sink.Service.HeadObject(params)
 
 	if err != nil {
 
-		if e, ok := err.(*aws_s3.Error); ok && e.StatusCode == 404 {
-			sink.Logger.Debug("%s is 404 so assuming it has changed (WHOA)", dest)
+		aws_err := err.(awserr.Error)
+
+		if aws_err.Code() == "NotFound" {
+			sink.Logger.Info("%s is 404", dest)
 			return true, nil
 		}
 
-		sink.Logger.Error("failed to HEAD %s because %s", dest, err)
+		sink.Logger.Error("Failed to HEAD %s because %s", dest, err)
 		return false, err
 	}
 
 	local_hash, err := utils.HashFile(source)
 
 	if err != nil {
-		sink.Logger.Warning("failed to hash %s, because %v", source, err)
+		sink.Logger.Warning("Failed to hash %s, because %v", source, err)
 		return false, err
 	}
 
-	etag := rsp.Header.Get("Etag")
+	etag := *rsp.ETag
 	remote_hash := strings.Replace(etag, "\"", "", -1)
 
-	sink.Logger.Debug("local hash is %s remote hash is %s", local_hash, remote_hash)
+	sink.Logger.Debug("Local hash is %s remote hash is %s", local_hash, remote_hash)
 
 	if local_hash == remote_hash {
 		return false, nil
@@ -340,29 +363,22 @@ func (sink *Sync) HasChanged(source string, dest string) (ch bool, err error) {
 	info, err := os.Stat(source)
 
 	if err != nil {
-		sink.Logger.Error("failed to stat %s because %s", source, err)
+		sink.Logger.Error("Failed to stat %s because %s", source, err)
 		return false, err
 	}
 
 	mtime_local := info.ModTime()
-
-	last_mod := rsp.Header.Get("Last-Modified")
-	mtime_remote, err := time.Parse(time.RFC1123, last_mod)
-
-	if err != nil {
-		sink.Logger.Error("failed to parse timestamp %s because %s", last_mod, err)
-		return false, err
-	}
+	mtime_remote := *rsp.LastModified
 
 	// Because who remembers this stuff anyway...
 	// func (t Time) Before(u Time) bool
 	// Before reports whether the time instant t is before u.
 
-	sink.Logger.Debug("local %s %s", mtime_local, source)
-	sink.Logger.Debug("remote %s %s", mtime_remote, dest)
+	sink.Logger.Debug("Local %s %s", mtime_local, source)
+	sink.Logger.Debug("Remote %s %s", mtime_remote, dest)
 
 	if mtime_local.Before(mtime_remote) {
-		sink.Logger.Warning("remote copy of %s has a more recent modification date (local: %s remote: %s)", source, mtime_local, mtime_remote)
+		sink.Logger.Warning("Remote copy of %s has a more recent modification date (local: %s remote: %s)", source, mtime_local, mtime_remote)
 		return false, nil
 	}
 
@@ -394,7 +410,7 @@ func (sink *Sync) ProcessRetries(root string) bool {
 			r, ok := sink.Retries.Pop()
 
 			if !ok {
-				sink.Logger.Error("failed to pop retries because... computers?")
+				sink.Logger.Error("Failed to pop retries because... computers?")
 				break
 			}
 
@@ -408,7 +424,7 @@ func (sink *Sync) ProcessRetries(root string) bool {
 
 					atomic.AddInt64(&sink.Retried, 1)
 
-					sink.Logger.Info("retry syncing %s", source)
+					sink.Logger.Info("Retry syncing %s", source)
 
 					sink.SyncFile(source, root, wg)
 
@@ -445,7 +461,7 @@ func (sink *Sync) MonitorStatus() {
 		}
 
 		sink.Logger.Info(sink.StatusReport())
-		sink.Logger.Info("monitoring complete")
+		sink.Logger.Info("Monitoring complete")
 	}()
 }
 

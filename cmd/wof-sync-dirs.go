@@ -2,11 +2,11 @@ package main
 
 import (
 	"flag"
-	"github.com/goamz/goamz/aws"
 	log "github.com/whosonfirst/go-whosonfirst-log"
 	"github.com/whosonfirst/go-whosonfirst-s3"
 	"github.com/whosonfirst/go-writer-slackcat"
 	"io"
+	golog "log"
 	"os"
 	"runtime"
 )
@@ -17,6 +17,7 @@ func main() {
 	var bucket = flag.String("bucket", "", "The S3 bucket to sync <root> to")
 	var prefix = flag.String("prefix", "", "A prefix inside your S3 bucket where things go")
 	var debug = flag.Bool("debug", false, "Don't actually try to sync anything and spew a lot of line noise")
+	var dryrun = flag.Bool("dryrun", false, "Go through the motions but don't actually clone anything")
 	var credentials = flag.String("credentials", "", "Your S3 credentials file")
 	var procs = flag.Int("processes", (runtime.NumCPU() * 2), "The number of concurrent processes to sync data with")
 	var loglevel = flag.String("loglevel", "info", "Log level for reporting")
@@ -26,27 +27,25 @@ func main() {
 	flag.Parse()
 
 	if *root == "" {
-		panic("missing root to sync")
+		golog.Fatal("missing root to sync")
 	}
 
 	_, err := os.Stat(*root)
 
 	if os.IsNotExist(err) {
-		panic("root does not exist")
+		golog.Fatal("root does not exist")
 	}
 
 	if *bucket == "" {
-		panic("missing bucket")
+		golog.Fatal("missing bucket")
 	}
 
 	if *credentials != "" {
 		os.Setenv("AWS_CREDENTIAL_FILE", *credentials)
 	}
 
-	auth, err := aws.SharedAuth()
-
-	if err != nil {
-		panic(err)
+	if *debug || *dryrun {
+		*loglevel = "debug"
 	}
 
 	logger := log.NewWOFLogger("[wof-sync-dirs] ")
@@ -54,9 +53,13 @@ func main() {
 	writer := io.MultiWriter(os.Stdout)
 	logger.AddLogger(writer, *loglevel)
 
-	s := s3.WOFSync(auth, *bucket, *prefix, *procs, *debug, logger)
-	s.MonitorStatus()
+	s := s3.WOFSync(*bucket, *prefix, *procs, *debug, logger)
 
+	if *dryrun {
+		s.Dryrun = true
+	}
+
+	s.MonitorStatus()
 	err = s.SyncDirectory(*root)
 
 	if *slack {

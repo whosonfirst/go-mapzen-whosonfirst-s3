@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"github.com/goamz/goamz/aws"
 	log "github.com/whosonfirst/go-whosonfirst-log"
 	"github.com/whosonfirst/go-whosonfirst-s3"
 	"github.com/whosonfirst/go-writer-slackcat"
@@ -17,7 +16,8 @@ func main() {
 	var bucket = flag.String("bucket", "", "The S3 bucket to sync <root> to")
 	var prefix = flag.String("prefix", "", "A prefix inside your S3 bucket where things go")
 	var list = flag.String("file-list", "", "A single file containing a list of files to sync")
-	var debug = flag.Bool("debug", false, "Don't actually try to sync anything and spew a lot of line noise")
+	var debug = flag.Bool("debug", false, "Be chatty")
+	var dryrun = flag.Bool("dryrun", false, "Go through the motions but don't actually clone anything")
 	var tidy = flag.Bool("tidy", false, "Remove -file-list file, if present")
 	var credentials = flag.String("credentials", "", "Your S3 credentials file")
 	var procs = flag.Int("processes", (runtime.NumCPU() * 2), "The number of concurrent processes to sync data with")
@@ -45,10 +45,8 @@ func main() {
 		os.Setenv("AWS_CREDENTIAL_FILE", *credentials)
 	}
 
-	auth, err := aws.SharedAuth()
-
-	if err != nil {
-		panic(err)
+	if *debug || *dryrun {
+		*loglevel = "debug"
 	}
 
 	logger := log.NewWOFLogger("[wof-sync-files] ")
@@ -56,8 +54,12 @@ func main() {
 	writer := io.MultiWriter(os.Stdout)
 	logger.AddLogger(writer, *loglevel)
 
-	s := s3.WOFSync(auth, *bucket, *prefix, *procs, *debug, logger)
+	s := s3.WOFSync(*bucket, *prefix, *procs, *debug, logger)
 	s.MonitorStatus()
+
+	if *dryrun {
+		s.Dryrun = true
+	}
 
 	if *list == "" {
 		args := flag.Args()
