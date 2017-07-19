@@ -4,8 +4,10 @@ package s3
 // https://docs.aws.amazon.com/sdk-for-go/api/service/s3.html
 
 import (
+	"crypto/md5"
 	"bufio"
 	"bytes"
+	"encoding/hex"
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -14,9 +16,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/jeffail/tunny"
 	"github.com/whosonfirst/go-whosonfirst-crawl"
-	log "github.com/whosonfirst/go-whosonfirst-log"
-	pool "github.com/whosonfirst/go-whosonfirst-pool"
-	utils "github.com/whosonfirst/go-whosonfirst-utils"
+	"github.com/whosonfirst/go-whosonfirst-log"
+	"github.com/whosonfirst/go-whosonfirst-pool"
 	"io/ioutil"
 	"os"
 	"path"
@@ -348,7 +349,23 @@ func (sink *Sync) HasChanged(source string, dest string) (ch bool, err error) {
 		return false, err
 	}
 
-	local_hash, err := utils.HashFile(source)
+	// we used to do the following with a helper function in go-whosonfirst-utils
+	// but that package has gotten unweildy and out of control - I am thinking about
+	// a generic WOF "hashing" package but that started turning in to quicksand so
+	// in the interest of just removing go-whosonfirst-utils as a dependency we're
+	// going to do it the old-skool way by hand, for now (20170718/thisisaaronland)
+
+	// local_hash, err := utils.HashFile(source)
+
+	body, err := ioutil.ReadFile(source)
+
+	if err != nil {
+		return false, err
+	}
+
+	enc := md5.Sum(body)
+	local_hash := hex.EncodeToString(enc[:])
+
 
 	if err != nil {
 		sink.Logger.Warning("Failed to hash %s, because %v", source, err)
