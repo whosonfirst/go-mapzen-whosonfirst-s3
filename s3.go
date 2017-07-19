@@ -4,9 +4,9 @@ package s3
 // https://docs.aws.amazon.com/sdk-for-go/api/service/s3.html
 
 import (
-	"crypto/md5"
 	"bufio"
 	"bytes"
+	"crypto/md5"
 	"encoding/hex"
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
@@ -355,7 +355,15 @@ func (sink *Sync) HasChanged(source string, dest string) (ch bool, err error) {
 	// in the interest of just removing go-whosonfirst-utils as a dependency we're
 	// going to do it the old-skool way by hand, for now (20170718/thisisaaronland)
 
-	// local_hash, err := utils.HashFile(source)
+	/*
+
+		 local_hash, err := utils.HashFile(source)
+		if err != nil {
+			sink.Logger.Warning("Failed to hash %s, because %v", source, err)
+			return false, err
+		}
+
+	*/
 
 	body, err := ioutil.ReadFile(source)
 
@@ -365,12 +373,6 @@ func (sink *Sync) HasChanged(source string, dest string) (ch bool, err error) {
 
 	enc := md5.Sum(body)
 	local_hash := hex.EncodeToString(enc[:])
-
-
-	if err != nil {
-		sink.Logger.Warning("Failed to hash %s, because %v", source, err)
-		return false, err
-	}
 
 	etag := *rsp.ETag
 	remote_hash := strings.Replace(etag, "\"", "", -1)
