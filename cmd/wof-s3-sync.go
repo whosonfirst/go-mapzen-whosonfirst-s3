@@ -87,7 +87,7 @@ func main() {
 		}
 
 		tb := time.Since(ta)
-		log.Printf("time to index %v\n", tb)
+		log.Printf("time to index %s : %v\n", path, tb)
 	}
 
 	// this code doesn't exist and I am not sure how I want to deal
