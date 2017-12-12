@@ -8,6 +8,8 @@ self:	prep rmdeps
 	if test -d src/github.com/whosonfirst/go-whosonfirst-s3; then rm -rf src/github.com/whosonfirst/go-whosonfirst-s3; fi
 	mkdir -p src/github.com/whosonfirst/go-whosonfirst-s3
 	cp s3.go src/github.com/whosonfirst/go-whosonfirst-s3/
+	cp -r sync src/github.com/whosonfirst/go-whosonfirst-s3/
+	cp -r throttle src/github.com/whosonfirst/go-whosonfirst-s3/
 	cp -r vendor/src/* src/
 
 rmdeps:
@@ -16,11 +18,11 @@ rmdeps:
 build:	fmt bin
 
 deps: 	rmdeps
-	@GOPATH=$(shell pwd) go get -u "github.com/whosonfirst/go-whosonfirst-crawl"
+	@GOPATH=$(shell pwd) go get -u "github.com/hashicorp/golang-lru"
+	@GOPATH=$(shell pwd) go get -u "github.com/throttled/throttled"
+	@GOPATH=$(shell pwd) go get -u "github.com/whosonfirst/go-whosonfirst-index"
 	@GOPATH=$(shell pwd) go get -u "github.com/whosonfirst/go-whosonfirst-log"
-	@GOPATH=$(shell pwd) go get -u "github.com/whosonfirst/go-whosonfirst-pool"
-	@GOPATH=$(shell pwd) go get -u "github.com/whosonfirst/go-writer-slackcat"
-	@GOPATH=$(shell pwd) go get -u "github.com/jeffail/tunny"
+	@GOPATH=$(shell pwd) go get -u "github.com/whosonfirst/go-whosonfirst-uri"
 	@GOPATH=$(GOPATH) go get -u "github.com/aws/aws-sdk-go"
 
 vendor-deps: deps
@@ -28,17 +30,13 @@ vendor-deps: deps
 	if test -d vendor/src; then rm -rf vendor/src; fi
 	cp -r src vendor/src
 	find vendor -name '.git' -print -type d -exec rm -rf {} +
-	# PLEASE FINISH ME - REMOVE EVERYTHING BUT 's3' FROM vendor/src/github.com/aws/aws-sdk-go/service
-	# ls -A vendor/src/github.com/aws/aws-sdk-go/service | grep -v s3
 	rm -rf src
 
 bin:	self
-	@GOPATH=$(shell pwd) go build -o bin/wof-sync-dirs cmd/wof-sync-dirs.go
-	@GOPATH=$(shell pwd) go build -o bin/wof-sync-files cmd/wof-sync-files.go
-
-test: 	self
-	@GOPATH=$(shell pwd) go build -o bin/test cmd/test.go
+	@GOPATH=$(shell pwd) go build -o bin/wof-s3-sync cmd/wof-s3-sync.go
 
 fmt:
 	go fmt *.go 
 	go fmt cmd/*.go
+	go fmt sync/*.go
+	go fmt throttle/*.go
