@@ -14,7 +14,7 @@ All of this package's dependencies are bundled with the code in the `vendor` dir
 
 ## Important
 
-1. Parts (or all) of this package will almost certainly be renamed and/or merged with the [go-whosonfirst-clone](https://github.com/whosonfirst/go-whosonfirst-clone). The details are still being worked out.
+1. Parts (or all) of this package will almost certainly be renamed and/or merged with [go-whosonfirst-aws](https://github.com/whosonfirst/go-whosonfirst-aws) [go-whosonfirst-clone](https://github.com/whosonfirst/go-whosonfirst-clone). The details are still being worked out.
 2. There is only local -> remote (S3) synchronization at the moment. See above.
 3. There is no retry (for failed uploads) code yet.
 
