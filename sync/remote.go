@@ -11,7 +11,7 @@ import (
 	"github.com/whosonfirst/go-whosonfirst-uri"
 	"io"
 	"io/ioutil"
-	"log"
+	_ "log"
 	"path/filepath"
 )
 
@@ -20,6 +20,7 @@ type RemoteSyncOptions struct {
 	Bucket      string
 	Prefix      string
 	Credentials string
+	DSN         string
 	ACL         string
 	RateLimit   int
 	Force       bool
@@ -37,8 +38,11 @@ type RemoteSync struct {
 
 func NewRemoteSync(opts RemoteSyncOptions) (Sync, error) {
 
-	dsn := fmt.Sprintf("bucket=%s prefix=%s region=%s credentials=%s", opts.Bucket, opts.Prefix, opts.Region, opts.Credentials)
-	log.Println("DSN", dsn)
+	dsn := opts.DSN
+
+	if dsn == "" {
+		dsn = fmt.Sprintf("bucket=%s prefix=%s region=%s credentials=%s", opts.Bucket, opts.Prefix, opts.Region, opts.Credentials)
+	}
 
 	cfg, err := s3.NewS3ConfigFromString(dsn)
 
@@ -146,8 +150,6 @@ func (s *RemoteSync) SyncFile(fh io.Reader, source string) error {
 
 		changed, err := s.conn.HasChanged(dest, body)
 
-		log.Println("CHANGED", dest, changed)
-
 		if err != nil {
 			return err
 		}
@@ -160,9 +162,6 @@ func (s *RemoteSync) SyncFile(fh io.Reader, source string) error {
 	}
 
 	key := fmt.Sprintf("%s#ACL=%s", dest, s.options.ACL)
-
-	log.Println("SYNC", key)
-	return nil
 
 	if s.options.Dryrun {
 		return nil

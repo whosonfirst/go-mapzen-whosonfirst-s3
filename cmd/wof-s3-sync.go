@@ -2,10 +2,10 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"github.com/whosonfirst/go-whosonfirst-index"
 	"github.com/whosonfirst/go-whosonfirst-s3/sync"
 	"log"
-	"runtime"
 	"sync/atomic"
 	"time"
 )
@@ -16,28 +16,27 @@ func main() {
 	var region = flag.String("region", "us-east-1", "...")
 	var bucket = flag.String("bucket", "whosonfirst.mapzen.com", "...")
 	var prefix = flag.String("prefix", "", "...")
+	var dsn = flag.String("dsn", "", "...")
 	var acl = flag.String("acl", "public-read", "...")
-	var creds = flag.String("credentials", "default", "...")
+	var credentials = flag.String("credentials", "default", "...")
 	var ratelimit = flag.Int("rate-limit", 100000, "...")
 	var dryrun = flag.Bool("dryrun", false, "...")
 	var force = flag.Bool("force", false, "...")
 	var verbose = flag.Bool("verbose", false, "...")
-	var procs = flag.Int("processes", (runtime.NumCPU() * 2), "The number of concurrent processes to clone data with")
 
 	flag.Parse()
 
-	runtime.GOMAXPROCS(*procs)
+	if *dsn == "" {
+		*dsn = fmt.Sprintf("bucket=%s prefix=%s region=%s credentials=%s", *bucket, *prefix, *region, *credentials)
+	}
 
 	opts := sync.RemoteSyncOptions{
-		Region:      *region,
-		Bucket:      *bucket,
-		Prefix:      *prefix,
-		ACL:         *acl,
-		RateLimit:   *ratelimit,
-		Dryrun:      *dryrun,
-		Force:       *force,
-		Verbose:     *verbose,
-		Credentials: *creds,
+		DSN:       *dsn,
+		ACL:       *acl,
+		RateLimit: *ratelimit,
+		Dryrun:    *dryrun,
+		Force:     *force,
+		Verbose:   *verbose,
 	}
 
 	sync, err := sync.NewRemoteSync(opts)
