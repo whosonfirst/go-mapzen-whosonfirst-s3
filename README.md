@@ -1,4 +1,4 @@
-# go-mapzen-whosonfirst-s3
+# go-whosonfirst-s3
 
 Go package for working with Who's On First data and S3 buckets
 
