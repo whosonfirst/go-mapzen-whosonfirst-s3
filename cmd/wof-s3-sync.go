@@ -4,8 +4,10 @@ import (
 	"flag"
 	"fmt"
 	"github.com/whosonfirst/go-whosonfirst-index"
+	"github.com/whosonfirst/go-whosonfirst-log"
 	"github.com/whosonfirst/go-whosonfirst-s3/sync"
-	"log"
+	"io"
+	"os"
 	"sync/atomic"
 	"time"
 )
@@ -26,6 +28,13 @@ func main() {
 
 	flag.Parse()
 
+	logger := log.SimpleWOFLogger()
+
+	if *verbose {
+		stdout := io.Writer(os.Stdout)
+		logger.AddLogger(stdout, "status")
+	}
+
 	if *dsn == "" {
 		*dsn = fmt.Sprintf("bucket=%s prefix=%s region=%s credentials=%s", *bucket, *prefix, *region, *credentials)
 	}
@@ -37,24 +46,25 @@ func main() {
 		Dryrun:    *dryrun,
 		Force:     *force,
 		Verbose:   *verbose,
+		Logger:    logger,
 	}
 
 	sync, err := sync.NewRemoteSync(opts)
 
 	if err != nil {
-		log.Fatal(err)
+		logger.Fatal("Failed to create new sync because %s", err)
 	}
 
 	cb, err := sync.SyncFunc()
 
 	if err != nil {
-		log.Fatal(err)
+		logger.Fatal("Failed to create sync callback because %s", err)
 	}
 
 	idx, err := index.NewIndexer(*mode, cb)
 
 	if err != nil {
-		log.Fatal(err)
+		logger.Fatal("Failed to create indexer because %s", err)
 	}
 
 	done_ch := make(chan bool)
@@ -67,7 +77,7 @@ func main() {
 				break
 			case <-time.After(1 * time.Minute):
 				i := atomic.LoadInt64(&idx.Indexed) // please just make this part of go-whosonfirst-index
-				log.Printf("%d indexed\n", i)
+				logger.Status("%d indexed\n", i)
 			}
 		}
 	}()
@@ -81,12 +91,12 @@ func main() {
 		err := idx.IndexPath(path)
 
 		if err != nil {
-			log.Println(err)
+			logger.Warning("Failed to index %s because %s", path, err)
 			break
 		}
 
 		tb := time.Since(ta)
-		log.Printf("time to index %s : %v\n", path, tb)
+		logger.Status("time to index %s : %v\n", path, tb)
 	}
 
 	// this code doesn't exist and I am not sure how I want to deal
@@ -115,5 +125,5 @@ func main() {
 	t2 := time.Since(t1)
 	i := atomic.LoadInt64(&idx.Indexed) // see above
 
-	log.Printf("time to index %d documents : %v\n", i, t2)
+	logger.Status("time to index %d documents : %v\n", i, t2)
 }

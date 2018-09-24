@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/whosonfirst/go-whosonfirst-aws/s3"
 	"github.com/whosonfirst/go-whosonfirst-index"
+	"github.com/whosonfirst/go-whosonfirst-log"
 	"github.com/whosonfirst/go-whosonfirst-s3/throttle"
 	"github.com/whosonfirst/go-whosonfirst-uri"
 	"io"
@@ -26,6 +27,7 @@ type RemoteSyncOptions struct {
 	Force       bool
 	Dryrun      bool
 	Verbose     bool
+	Logger      *log.WOFLogger
 }
 
 type RemoteSync struct {
@@ -154,6 +156,8 @@ func (s *RemoteSync) SyncFile(fh io.Reader, source string) error {
 			return err
 		}
 
+		s.options.Logger.Status("Has %s changed: %t", dest, changed)
+
 		if !changed {
 			return nil
 		}
@@ -162,8 +166,10 @@ func (s *RemoteSync) SyncFile(fh io.Reader, source string) error {
 	}
 
 	key := fmt.Sprintf("%s#ACL=%s", dest, s.options.ACL)
+	s.options.Logger.Status("PUT %s", key)
 
 	if s.options.Dryrun {
+		s.options.Logger.Status("Running in dryrun mode, so not PUT-ing anything...")
 		return nil
 	}
 
