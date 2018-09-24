@@ -10,7 +10,7 @@ self:	prep rmdeps
 	cp s3.go src/github.com/whosonfirst/go-whosonfirst-s3/
 	cp -r sync src/github.com/whosonfirst/go-whosonfirst-s3/
 	cp -r throttle src/github.com/whosonfirst/go-whosonfirst-s3/
-	cp -r vendor/src/* src/
+	cp -r vendor/* src/
 
 rmdeps:
 	if test -d src; then rm -rf src; fi 
@@ -25,15 +25,14 @@ deps: 	rmdeps
 	@GOPATH=$(shell pwd) go get -u "github.com/whosonfirst/go-whosonfirst-uri"
 	@GOPATH=$(shell pwd) go get -u "github.com/whosonfirst/go-whosonfirst-aws/..."
 
-vendor-deps: deps
-	if test ! -d vendor; then mkdir vendor; fi
-	if test -d vendor/src; then rm -rf vendor/src; fi
-	cp -r src vendor/src
+vendor-deps: rmdeps deps
+	if test -d vendor; then rm -rf vendor; fi
+	cp -r src vendor
 	find vendor -name '.git' -print -type d -exec rm -rf {} +
 	rm -rf src
 
 bin:	self
-	@GOPATH=$(shell pwd) go build -o bin/wof-s3-sync cmd/wof-s3-sync.go
+	@GOPATH=$(GOPATH) go build -o bin/wof-s3-sync cmd/wof-s3-sync.go
 
 fmt:
 	go fmt *.go 

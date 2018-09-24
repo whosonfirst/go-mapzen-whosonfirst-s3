@@ -12,7 +12,7 @@ import (
 
 func main() {
 
-	var mode = flag.String("mode", "files", "...")
+	var mode = flag.String("mode", "repo", "...")
 	var region = flag.String("region", "us-east-1", "...")
 	var bucket = flag.String("bucket", "whosonfirst.mapzen.com", "...")
 	var prefix = flag.String("prefix", "", "...")
