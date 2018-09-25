@@ -25,7 +25,34 @@ _Please write me_
 
 ### wof-s3-sync
 
-_Please finish writing me..._
+```
+./bin/wof-s3-sync -h
+Usage of ./bin/wof-s3-sync:
+  -acl string
+       A valid AWS S3 ACL string for permissions. (default "public-read")
+  -bucket string
+    	  The name of your S3 bucket. (default "data.whosonfirst.org")
+  -credentials string
+    	       What kind of AWS credentials to use for syncing data. (default "iam:")
+  -dryrun
+	Go through the motions but don't actually sync anything.
+  -dsn string
+       A valid go-whosonfirst-aws DSN string.
+  -force
+	Sync local files even if they haven't changed remotely.
+  -mode string
+    	The mode to use for reading local data. Valid modes are: directory,feature,feature-collection,files,geojson-ls,meta,path,repo,sqlite. (default "repo")
+  -prefix string
+    	  The prefix (or subdirectory) for syncing data (default "data")
+  -rate-limit int
+    	      The maximum number or concurrent processes. (default 100000)
+  -region string
+    	  The region your S3 bucket lives in. (default "us-east-1")
+  -verbose
+	Be chatty.
+```
+
+For example:
 
 ```
 ./bin/wof-s3-sync -rate-limit 100000 -dsn 'bucket=data.whosonfirst.org region=us-east-1 prefix=data credentials=iam:' -mode repo /usr/local/data/whosonfirst-data
@@ -45,3 +72,4 @@ _Please finish writing me..._
 ## See also
 
 * https://github.com/whosonfirst/go-whosonfirst-aws
+* https://github.com/whosonfirst/go-whosonfirst-index

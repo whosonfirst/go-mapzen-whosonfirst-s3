@@ -8,23 +8,27 @@ import (
 	"github.com/whosonfirst/go-whosonfirst-s3/sync"
 	"io"
 	"os"
+	"strings"
 	"sync/atomic"
 	"time"
 )
 
 func main() {
 
-	var mode = flag.String("mode", "repo", "...")
-	var region = flag.String("region", "us-east-1", "...")
-	var bucket = flag.String("bucket", "whosonfirst.mapzen.com", "...")
-	var prefix = flag.String("prefix", "", "...")
-	var dsn = flag.String("dsn", "", "...")
-	var acl = flag.String("acl", "public-read", "...")
-	var credentials = flag.String("credentials", "default", "...")
-	var ratelimit = flag.Int("rate-limit", 100000, "...")
-	var dryrun = flag.Bool("dryrun", false, "...")
-	var force = flag.Bool("force", false, "...")
-	var verbose = flag.Bool("verbose", false, "...")
+	valid_modes := strings.Join(index.Modes(), ",")
+	desc_modes := fmt.Sprintf("The mode to use for reading local data. Valid modes are: %s.", valid_modes)
+
+	var mode = flag.String("mode", "repo", desc_modes)
+	var region = flag.String("region", "us-east-1", "The region your S3 bucket lives in.")
+	var bucket = flag.String("bucket", "data.whosonfirst.org", "The name of your S3 bucket.")
+	var prefix = flag.String("prefix", "data", "The prefix (or subdirectory) for syncing data")
+	var credentials = flag.String("credentials", "iam:", "What kind of AWS credentials to use for syncing data.")
+	var dsn = flag.String("dsn", "", "A valid go-whosonfirst-aws DSN string.")
+	var acl = flag.String("acl", "public-read", "A valid AWS S3 ACL string for permissions.")
+	var ratelimit = flag.Int("rate-limit", 100000, "The maximum number or concurrent processes.")
+	var dryrun = flag.Bool("dryrun", false, "Go through the motions but don't actually sync anything.")
+	var force = flag.Bool("force", false, "Sync local files even if they haven't changed remotely.")
+	var verbose = flag.Bool("verbose", false, "Be chatty.")
 
 	flag.Parse()
 
