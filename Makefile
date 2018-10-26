@@ -23,7 +23,7 @@ deps: 	rmdeps
 	@GOPATH=$(shell pwd) go get -u "github.com/whosonfirst/go-whosonfirst-index"
 	@GOPATH=$(shell pwd) go get -u "github.com/whosonfirst/go-whosonfirst-log"
 	@GOPATH=$(shell pwd) go get -u "github.com/whosonfirst/go-whosonfirst-uri"
-	@GOPATH=$(shell pwd) go get -u "github.com/whosonfirst/go-whosonfirst-aws/..."
+	@GOPATH=$(shell pwd) go get -u "github.com/whosonfirst/go-whosonfirst-aws"
 
 vendor-deps: rmdeps deps
 	if test -d vendor; then rm -rf vendor; fi

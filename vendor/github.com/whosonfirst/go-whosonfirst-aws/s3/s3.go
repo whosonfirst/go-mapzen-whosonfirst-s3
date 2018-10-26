@@ -12,16 +12,15 @@ import (
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/session"
+	aws_session "github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+	"github.com/whosonfirst/go-whosonfirst-aws/session"
 	"github.com/whosonfirst/go-whosonfirst-aws/util"
 	"github.com/whosonfirst/go-whosonfirst-mimetypes"
 	"io"
 	"io/ioutil"
 	"log"
-	"os/user"
 	"path/filepath"
 	"strings"
 	"sync/atomic"
@@ -34,7 +33,7 @@ func ReadCloserFromBytes(b []byte) (io.ReadCloser, error) {
 }
 
 type S3Connection struct {
-	session *session.Session
+	session *aws_session.Session
 	service *s3.S3
 	bucket  string
 	prefix  string
@@ -159,71 +158,10 @@ func NewS3Connection(s3cfg *S3Config) (*S3Connection, error) {
 	// https://docs.aws.amazon.com/sdk-for-go/v1/developerguide/configuring-sdk.html
 	// https://docs.aws.amazon.com/sdk-for-go/api/service/s3/
 
-	cfg := aws.NewConfig()
-	cfg.WithRegion(s3cfg.Region)
+	sess, err := session.NewSessionWithCredentials(s3cfg.Credentials, s3cfg.Region)
 
-	if strings.HasPrefix(s3cfg.Credentials, "env:") {
-
-		creds := credentials.NewEnvCredentials()
-		cfg.WithCredentials(creds)
-
-	} else if strings.HasPrefix(s3cfg.Credentials, "iam:") {
-
-		// assume an IAM role suffient for doing whatever
-
-	} else if s3cfg.Credentials != "" {
-
-		details := strings.Split(s3cfg.Credentials, ":")
-
-		var creds_file string
-		var profile string
-
-		if len(details) == 1 {
-
-			whoami, err := user.Current()
-
-			if err != nil {
-				return nil, err
-			}
-
-			dotaws := filepath.Join(whoami.HomeDir, ".aws")
-			creds_file = filepath.Join(dotaws, "credentials")
-
-			profile = details[0]
-
-		} else {
-
-			path, err := filepath.Abs(details[0])
-
-			if err != nil {
-				return nil, err
-			}
-
-			creds_file = path
-			profile = details[1]
-		}
-
-		creds := credentials.NewSharedCredentials(creds_file, profile)
-		cfg.WithCredentials(creds)
-
-	} else {
-
-		// for backwards compatibility as of 05a6042dc5956c13513bdc5ab4969877013f795c
-		// (20161203/thisisaaronland)
-
-		creds := credentials.NewEnvCredentials()
-		cfg.WithCredentials(creds)
-	}
-
-	sess := session.New(cfg)
-
-	if s3cfg.Credentials != "" {
-
-		_, err := sess.Config.Credentials.Get()
-
-		if err != nil {
-			return nil, err
-		}
+	if err != nil {
+		return nil, err
 	}
 
 	service := s3.New(sess)
