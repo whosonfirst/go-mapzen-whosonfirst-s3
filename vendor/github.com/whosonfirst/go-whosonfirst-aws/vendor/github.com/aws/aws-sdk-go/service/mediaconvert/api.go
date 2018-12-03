@@ -11,12 +11,101 @@ import (
 	"github.com/aws/aws-sdk-go/aws/request"
 )
 
+const opAssociateCertificate = "AssociateCertificate"
+
+// AssociateCertificateRequest generates a "aws/request.Request" representing the
+// client's request for the AssociateCertificate operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See AssociateCertificate for more information on using the AssociateCertificate
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the AssociateCertificateRequest method.
+//    req, resp := client.AssociateCertificateRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/mediaconvert-2017-08-29/AssociateCertificate
+func (c *MediaConvert) AssociateCertificateRequest(input *AssociateCertificateInput) (req *request.Request, output *AssociateCertificateOutput) {
+	op := &request.Operation{
+		Name:       opAssociateCertificate,
+		HTTPMethod: "POST",
+		HTTPPath:   "/2017-08-29/certificates",
+	}
+
+	if input == nil {
+		input = &AssociateCertificateInput{}
+	}
+
+	output = &AssociateCertificateOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// AssociateCertificate API operation for AWS Elemental MediaConvert.
+//
+// Associates an AWS Certificate Manager (ACM) Amazon Resource Name (ARN) with
+// AWS Elemental MediaConvert.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Elemental MediaConvert's
+// API operation AssociateCertificate for usage and error information.
+//
+// Returned Error Codes:
+//   * ErrCodeBadRequestException "BadRequestException"
+//
+//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//
+//   * ErrCodeForbiddenException "ForbiddenException"
+//
+//   * ErrCodeNotFoundException "NotFoundException"
+//
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//
+//   * ErrCodeConflictException "ConflictException"
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/mediaconvert-2017-08-29/AssociateCertificate
+func (c *MediaConvert) AssociateCertificate(input *AssociateCertificateInput) (*AssociateCertificateOutput, error) {
+	req, out := c.AssociateCertificateRequest(input)
+	return out, req.Send()
+}
+
+// AssociateCertificateWithContext is the same as AssociateCertificate with the addition of
+// the ability to pass a context and additional request options.
+//
+// See AssociateCertificate for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *MediaConvert) AssociateCertificateWithContext(ctx aws.Context, input *AssociateCertificateInput, opts ...request.Option) (*AssociateCertificateOutput, error) {
+	req, out := c.AssociateCertificateRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opCancelJob = "CancelJob"
 
 // CancelJobRequest generates a "aws/request.Request" representing the
 // client's request for the CancelJob operation. The "output" return
 // value will be populated with the request's response once the request completes
-// successfuly.
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -105,7 +194,7 @@ const opCreateJob = "CreateJob"
 // CreateJobRequest generates a "aws/request.Request" representing the
 // client's request for the CreateJob operation. The "output" return
 // value will be populated with the request's response once the request completes
-// successfuly.
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -194,7 +283,7 @@ const opCreateJobTemplate = "CreateJobTemplate"
 // CreateJobTemplateRequest generates a "aws/request.Request" representing the
 // client's request for the CreateJobTemplate operation. The "output" return
 // value will be populated with the request's response once the request completes
-// successfuly.
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -283,7 +372,7 @@ const opCreatePreset = "CreatePreset"
 // CreatePresetRequest generates a "aws/request.Request" representing the
 // client's request for the CreatePreset operation. The "output" return
 // value will be populated with the request's response once the request completes
-// successfuly.
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -372,7 +461,7 @@ const opCreateQueue = "CreateQueue"
 // CreateQueueRequest generates a "aws/request.Request" representing the
 // client's request for the CreateQueue operation. The "output" return
 // value will be populated with the request's response once the request completes
-// successfuly.
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -461,7 +550,7 @@ const opDeleteJobTemplate = "DeleteJobTemplate"
 // DeleteJobTemplateRequest generates a "aws/request.Request" representing the
 // client's request for the DeleteJobTemplate operation. The "output" return
 // value will be populated with the request's response once the request completes
-// successfuly.
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -549,7 +638,7 @@ const opDeletePreset = "DeletePreset"
 // DeletePresetRequest generates a "aws/request.Request" representing the
 // client's request for the DeletePreset operation. The "output" return
 // value will be populated with the request's response once the request completes
-// successfuly.
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -637,7 +726,7 @@ const opDeleteQueue = "DeleteQueue"
 // DeleteQueueRequest generates a "aws/request.Request" representing the
 // client's request for the DeleteQueue operation. The "output" return
 // value will be populated with the request's response once the request completes
-// successfuly.
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -725,7 +814,7 @@ const opDescribeEndpoints = "DescribeEndpoints"
 // DescribeEndpointsRequest generates a "aws/request.Request" representing the
 // client's request for the DescribeEndpoints operation. The "output" return
 // value will be populated with the request's response once the request completes
-// successfuly.
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -751,6 +840,12 @@ func (c *MediaConvert) DescribeEndpointsRequest(input *DescribeEndpointsInput) (
 		Name:       opDescribeEndpoints,
 		HTTPMethod: "POST",
 		HTTPPath:   "/2017-08-29/endpoints",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"NextToken"},
+			OutputTokens:    []string{"NextToken"},
+			LimitToken:      "MaxResults",
+			TruncationToken: "",
+		},
 	}
 
 	if input == nil {
@@ -809,12 +904,151 @@ func (c *MediaConvert) DescribeEndpointsWithContext(ctx aws.Context, input *Desc
 	return out, req.Send()
 }
 
+// DescribeEndpointsPages iterates over the pages of a DescribeEndpoints operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See DescribeEndpoints method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a DescribeEndpoints operation.
+//    pageNum := 0
+//    err := client.DescribeEndpointsPages(params,
+//        func(page *DescribeEndpointsOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *MediaConvert) DescribeEndpointsPages(input *DescribeEndpointsInput, fn func(*DescribeEndpointsOutput, bool) bool) error {
+	return c.DescribeEndpointsPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// DescribeEndpointsPagesWithContext same as DescribeEndpointsPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *MediaConvert) DescribeEndpointsPagesWithContext(ctx aws.Context, input *DescribeEndpointsInput, fn func(*DescribeEndpointsOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *DescribeEndpointsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.DescribeEndpointsRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*DescribeEndpointsOutput), !p.HasNextPage())
+	}
+	return p.Err()
+}
+
+const opDisassociateCertificate = "DisassociateCertificate"
+
+// DisassociateCertificateRequest generates a "aws/request.Request" representing the
+// client's request for the DisassociateCertificate operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DisassociateCertificate for more information on using the DisassociateCertificate
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DisassociateCertificateRequest method.
+//    req, resp := client.DisassociateCertificateRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/mediaconvert-2017-08-29/DisassociateCertificate
+func (c *MediaConvert) DisassociateCertificateRequest(input *DisassociateCertificateInput) (req *request.Request, output *DisassociateCertificateOutput) {
+	op := &request.Operation{
+		Name:       opDisassociateCertificate,
+		HTTPMethod: "DELETE",
+		HTTPPath:   "/2017-08-29/certificates/{arn}",
+	}
+
+	if input == nil {
+		input = &DisassociateCertificateInput{}
+	}
+
+	output = &DisassociateCertificateOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// DisassociateCertificate API operation for AWS Elemental MediaConvert.
+//
+// Removes an association between the Amazon Resource Name (ARN) of an AWS Certificate
+// Manager (ACM) certificate and an AWS Elemental MediaConvert resource.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Elemental MediaConvert's
+// API operation DisassociateCertificate for usage and error information.
+//
+// Returned Error Codes:
+//   * ErrCodeBadRequestException "BadRequestException"
+//
+//   * ErrCodeInternalServerErrorException "InternalServerErrorException"
+//
+//   * ErrCodeForbiddenException "ForbiddenException"
+//
+//   * ErrCodeNotFoundException "NotFoundException"
+//
+//   * ErrCodeTooManyRequestsException "TooManyRequestsException"
+//
+//   * ErrCodeConflictException "ConflictException"
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/mediaconvert-2017-08-29/DisassociateCertificate
+func (c *MediaConvert) DisassociateCertificate(input *DisassociateCertificateInput) (*DisassociateCertificateOutput, error) {
+	req, out := c.DisassociateCertificateRequest(input)
+	return out, req.Send()
+}
+
+// DisassociateCertificateWithContext is the same as DisassociateCertificate with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DisassociateCertificate for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *MediaConvert) DisassociateCertificateWithContext(ctx aws.Context, input *DisassociateCertificateInput, opts ...request.Option) (*DisassociateCertificateOutput, error) {
+	req, out := c.DisassociateCertificateRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opGetJob = "GetJob"
 
 // GetJobRequest generates a "aws/request.Request" representing the
 // client's request for the GetJob operation. The "output" return
 // value will be populated with the request's response once the request completes
-// successfuly.
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -902,7 +1136,7 @@ const opGetJobTemplate = "GetJobTemplate"
 // GetJobTemplateRequest generates a "aws/request.Request" representing the
 // client's request for the GetJobTemplate operation. The "output" return
 // value will be populated with the request's response once the request completes
-// successfuly.
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -990,7 +1224,7 @@ const opGetPreset = "GetPreset"
 // GetPresetRequest generates a "aws/request.Request" representing the
 // client's request for the GetPreset operation. The "output" return
 // value will be populated with the request's response once the request completes
-// successfuly.
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -1078,7 +1312,7 @@ const opGetQueue = "GetQueue"
 // GetQueueRequest generates a "aws/request.Request" representing the
 // client's request for the GetQueue operation. The "output" return
 // value will be populated with the request's response once the request completes
-// successfuly.
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -1166,7 +1400,7 @@ const opListJobTemplates = "ListJobTemplates"
 // ListJobTemplatesRequest generates a "aws/request.Request" representing the
 // client's request for the ListJobTemplates operation. The "output" return
 // value will be populated with the request's response once the request completes
-// successfuly.
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -1192,6 +1426,12 @@ func (c *MediaConvert) ListJobTemplatesRequest(input *ListJobTemplatesInput) (re
 		Name:       opListJobTemplates,
 		HTTPMethod: "GET",
 		HTTPPath:   "/2017-08-29/jobTemplates",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"NextToken"},
+			OutputTokens:    []string{"NextToken"},
+			LimitToken:      "MaxResults",
+			TruncationToken: "",
+		},
 	}
 
 	if input == nil {
@@ -1251,12 +1491,62 @@ func (c *MediaConvert) ListJobTemplatesWithContext(ctx aws.Context, input *ListJ
 	return out, req.Send()
 }
 
+// ListJobTemplatesPages iterates over the pages of a ListJobTemplates operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListJobTemplates method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListJobTemplates operation.
+//    pageNum := 0
+//    err := client.ListJobTemplatesPages(params,
+//        func(page *ListJobTemplatesOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *MediaConvert) ListJobTemplatesPages(input *ListJobTemplatesInput, fn func(*ListJobTemplatesOutput, bool) bool) error {
+	return c.ListJobTemplatesPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListJobTemplatesPagesWithContext same as ListJobTemplatesPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *MediaConvert) ListJobTemplatesPagesWithContext(ctx aws.Context, input *ListJobTemplatesInput, fn func(*ListJobTemplatesOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListJobTemplatesInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListJobTemplatesRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListJobTemplatesOutput), !p.HasNextPage())
+	}
+	return p.Err()
+}
+
 const opListJobs = "ListJobs"
 
 // ListJobsRequest generates a "aws/request.Request" representing the
 // client's request for the ListJobs operation. The "output" return
 // value will be populated with the request's response once the request completes
-// successfuly.
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -1282,6 +1572,12 @@ func (c *MediaConvert) ListJobsRequest(input *ListJobsInput) (req *request.Reque
 		Name:       opListJobs,
 		HTTPMethod: "GET",
 		HTTPPath:   "/2017-08-29/jobs",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"NextToken"},
+			OutputTokens:    []string{"NextToken"},
+			LimitToken:      "MaxResults",
+			TruncationToken: "",
+		},
 	}
 
 	if input == nil {
@@ -1342,12 +1638,62 @@ func (c *MediaConvert) ListJobsWithContext(ctx aws.Context, input *ListJobsInput
 	return out, req.Send()
 }
 
+// ListJobsPages iterates over the pages of a ListJobs operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListJobs method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListJobs operation.
+//    pageNum := 0
+//    err := client.ListJobsPages(params,
+//        func(page *ListJobsOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *MediaConvert) ListJobsPages(input *ListJobsInput, fn func(*ListJobsOutput, bool) bool) error {
+	return c.ListJobsPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListJobsPagesWithContext same as ListJobsPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *MediaConvert) ListJobsPagesWithContext(ctx aws.Context, input *ListJobsInput, fn func(*ListJobsOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListJobsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListJobsRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListJobsOutput), !p.HasNextPage())
+	}
+	return p.Err()
+}
+
 const opListPresets = "ListPresets"
 
 // ListPresetsRequest generates a "aws/request.Request" representing the
 // client's request for the ListPresets operation. The "output" return
 // value will be populated with the request's response once the request completes
-// successfuly.
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -1373,6 +1719,12 @@ func (c *MediaConvert) ListPresetsRequest(input *ListPresetsInput) (req *request
 		Name:       opListPresets,
 		HTTPMethod: "GET",
 		HTTPPath:   "/2017-08-29/presets",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"NextToken"},
+			OutputTokens:    []string{"NextToken"},
+			LimitToken:      "MaxResults",
+			TruncationToken: "",
+		},
 	}
 
 	if input == nil {
@@ -1432,12 +1784,62 @@ func (c *MediaConvert) ListPresetsWithContext(ctx aws.Context, input *ListPreset
 	return out, req.Send()
 }
 
+// ListPresetsPages iterates over the pages of a ListPresets operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListPresets method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListPresets operation.
+//    pageNum := 0
+//    err := client.ListPresetsPages(params,
+//        func(page *ListPresetsOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *MediaConvert) ListPresetsPages(input *ListPresetsInput, fn func(*ListPresetsOutput, bool) bool) error {
+	return c.ListPresetsPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListPresetsPagesWithContext same as ListPresetsPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *MediaConvert) ListPresetsPagesWithContext(ctx aws.Context, input *ListPresetsInput, fn func(*ListPresetsOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListPresetsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListPresetsRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListPresetsOutput), !p.HasNextPage())
+	}
+	return p.Err()
+}
+
 const opListQueues = "ListQueues"
 
 // ListQueuesRequest generates a "aws/request.Request" representing the
 // client's request for the ListQueues operation. The "output" return
 // value will be populated with the request's response once the request completes
-// successfuly.
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -1463,6 +1865,12 @@ func (c *MediaConvert) ListQueuesRequest(input *ListQueuesInput) (req *request.R
 		Name:       opListQueues,
 		HTTPMethod: "GET",
 		HTTPPath:   "/2017-08-29/queues",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"NextToken"},
+			OutputTokens:    []string{"NextToken"},
+			LimitToken:      "MaxResults",
+			TruncationToken: "",
+		},
 	}
 
 	if input == nil {
@@ -1522,12 +1930,62 @@ func (c *MediaConvert) ListQueuesWithContext(ctx aws.Context, input *ListQueuesI
 	return out, req.Send()
 }
 
+// ListQueuesPages iterates over the pages of a ListQueues operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListQueues method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListQueues operation.
+//    pageNum := 0
+//    err := client.ListQueuesPages(params,
+//        func(page *ListQueuesOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *MediaConvert) ListQueuesPages(input *ListQueuesInput, fn func(*ListQueuesOutput, bool) bool) error {
+	return c.ListQueuesPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListQueuesPagesWithContext same as ListQueuesPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *MediaConvert) ListQueuesPagesWithContext(ctx aws.Context, input *ListQueuesInput, fn func(*ListQueuesOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListQueuesInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListQueuesRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*ListQueuesOutput), !p.HasNextPage())
+	}
+	return p.Err()
+}
+
 const opListTagsForResource = "ListTagsForResource"
 
 // ListTagsForResourceRequest generates a "aws/request.Request" representing the
 // client's request for the ListTagsForResource operation. The "output" return
 // value will be populated with the request's response once the request completes
-// successfuly.
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -1615,7 +2073,7 @@ const opTagResource = "TagResource"
 // TagResourceRequest generates a "aws/request.Request" representing the
 // client's request for the TagResource operation. The "output" return
 // value will be populated with the request's response once the request completes
-// successfuly.
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -1704,7 +2162,7 @@ const opUntagResource = "UntagResource"
 // UntagResourceRequest generates a "aws/request.Request" representing the
 // client's request for the UntagResource operation. The "output" return
 // value will be populated with the request's response once the request completes
-// successfuly.
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -1793,7 +2251,7 @@ const opUpdateJobTemplate = "UpdateJobTemplate"
 // UpdateJobTemplateRequest generates a "aws/request.Request" representing the
 // client's request for the UpdateJobTemplate operation. The "output" return
 // value will be populated with the request's response once the request completes
-// successfuly.
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -1881,7 +2339,7 @@ const opUpdatePreset = "UpdatePreset"
 // UpdatePresetRequest generates a "aws/request.Request" representing the
 // client's request for the UpdatePreset operation. The "output" return
 // value will be populated with the request's response once the request completes
-// successfuly.
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -1969,7 +2427,7 @@ const opUpdateQueue = "UpdateQueue"
 // UpdateQueueRequest generates a "aws/request.Request" representing the
 // client's request for the UpdateQueue operation. The "output" return
 // value will be populated with the request's response once the request completes
-// successfuly.
+// successfully.
 //
 // Use "Send" method on the returned Request to send the API call to the service.
 // the "output" return value is not valid until after Send returns without error.
@@ -2399,6 +2857,63 @@ func (s *AncillarySourceSettings) Validate() error {
 func (s *AncillarySourceSettings) SetSourceAncillaryChannelNumber(v int64) *AncillarySourceSettings {
 	s.SourceAncillaryChannelNumber = &v
 	return s
+}
+
+// Associates the Amazon Resource Name (ARN) of an AWS Certificate Manager (ACM)
+// certificate with an AWS Elemental MediaConvert resource.
+type AssociateCertificateInput struct {
+	_ struct{} `type:"structure"`
+
+	// The ARN of the ACM certificate that you want to associate with your MediaConvert
+	// resource.
+	//
+	// Arn is a required field
+	Arn *string `locationName:"arn" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s AssociateCertificateInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AssociateCertificateInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *AssociateCertificateInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "AssociateCertificateInput"}
+	if s.Arn == nil {
+		invalidParams.Add(request.NewErrParamRequired("Arn"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetArn sets the Arn field's value.
+func (s *AssociateCertificateInput) SetArn(v string) *AssociateCertificateInput {
+	s.Arn = &v
+	return s
+}
+
+// Successful association of Certificate Manager Amazon Resource Name (ARN)
+// with Mediaconvert returns an OK message.
+type AssociateCertificateOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s AssociateCertificateOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AssociateCertificateOutput) GoString() string {
+	return s.String()
 }
 
 // Audio codec settings (CodecSettings) under (AudioDescriptions) contains the
@@ -3301,6 +3816,9 @@ type CaptionDescription struct {
 	// Indicates the language of the caption output track.
 	LanguageCode *string `locationName:"languageCode" type:"string" enum:"LanguageCode"`
 
+	// Human readable information to indicate captions available for players (eg.
+	// English, or Spanish). Alphanumeric characters, spaces, and underscore are
+	// legal.
 	LanguageDescription *string `locationName:"languageDescription" type:"string"`
 }
 
@@ -3446,8 +3964,8 @@ type CaptionDestinationSettings struct {
 	// Burn-In Destination Settings.
 	BurninDestinationSettings *BurninDestinationSettings `locationName:"burninDestinationSettings" type:"structure"`
 
-	// Type of Caption output, including Burn-In, Embedded, SCC, SRT, TTML, WebVTT,
-	// DVB-Sub, Teletext.
+	// Type of Caption output, including Burn-In, Embedded (with or without SCTE20),
+	// SCC, SMI, SRT, TTML, WebVTT, DVB-Sub, Teletext.
 	DestinationType *string `locationName:"destinationType" type:"string" enum:"CaptionDestinationType"`
 
 	// DVB-Sub Destination Settings
@@ -3758,7 +4276,7 @@ type CmafEncryptionSettings struct {
 	// in the manifest. Otherwise Initialization Vector is not in the manifest.
 	InitializationVectorInManifest *string `locationName:"initializationVectorInManifest" type:"string" enum:"CmafInitializationVectorInManifest"`
 
-	// Settings for use with a SPEKE key provider.
+	// Use these settings to set up encryption with a static key provider.
 	StaticKeyProvider *StaticKeyProvider `locationName:"staticKeyProvider" type:"structure"`
 
 	// Indicates which type of key provider is used for encryption.
@@ -4777,8 +5295,12 @@ type DashIsoGroupSettings struct {
 	// files as in other output types.
 	SegmentLength *int64 `locationName:"segmentLength" min:"1" type:"integer"`
 
-	// When ENABLED, segment durations are indicated in the manifest using SegmentTimeline
-	// and SegmentTimeline will be promoted down into Representation from AdaptationSet.
+	// When you enable Precise segment duration in manifests (writeSegmentTimelineInRepresentation),
+	// your DASH manifest shows precise segment durations. The segment duration
+	// information appears inside the SegmentTimeline element, inside SegmentTemplate
+	// at the Representation level. When this feature isn't enabled, the segment
+	// durations in your DASH manifest are approximate. The segment duration information
+	// appears in the duration attribute of the SegmentTemplate element.
 	WriteSegmentTimelineInRepresentation *string `locationName:"writeSegmentTimelineInRepresentation" type:"string" enum:"DashIsoWriteSegmentTimelineInRepresentation"`
 }
 
@@ -5162,6 +5684,63 @@ func (s *DescribeEndpointsOutput) SetEndpoints(v []*Endpoint) *DescribeEndpoints
 func (s *DescribeEndpointsOutput) SetNextToken(v string) *DescribeEndpointsOutput {
 	s.NextToken = &v
 	return s
+}
+
+// Removes an association between the Amazon Resource Name (ARN) of an AWS Certificate
+// Manager (ACM) certificate and an AWS Elemental MediaConvert resource.
+type DisassociateCertificateInput struct {
+	_ struct{} `type:"structure"`
+
+	// The ARN of the ACM certificate that you want to disassociate from your MediaConvert
+	// resource.
+	//
+	// Arn is a required field
+	Arn *string `locationName:"arn" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s DisassociateCertificateInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DisassociateCertificateInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DisassociateCertificateInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DisassociateCertificateInput"}
+	if s.Arn == nil {
+		invalidParams.Add(request.NewErrParamRequired("Arn"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetArn sets the Arn field's value.
+func (s *DisassociateCertificateInput) SetArn(v string) *DisassociateCertificateInput {
+	s.Arn = &v
+	return s
+}
+
+// Successful disassociation of Certificate Manager Amazon Resource Name (ARN)
+// with Mediaconvert returns an OK message.
+type DisassociateCertificateOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s DisassociateCertificateOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DisassociateCertificateOutput) GoString() string {
+	return s.String()
 }
 
 // Inserts DVB Network Information Table (NIT) at the specified table repetition
@@ -7707,7 +8286,7 @@ type HlsEncryptionSettings struct {
 	// Settings for use with a SPEKE key provider
 	SpekeKeyProvider *SpekeKeyProvider `locationName:"spekeKeyProvider" type:"structure"`
 
-	// Settings for use with a SPEKE key provider.
+	// Use these settings to set up encryption with a static key provider.
 	StaticKeyProvider *StaticKeyProvider `locationName:"staticKeyProvider" type:"structure"`
 
 	// Indicates which type of key provider is used for encryption.
@@ -8181,13 +8760,13 @@ func (s *Id3Insertion) SetTimecode(v string) *Id3Insertion {
 }
 
 // Enable the Image inserter (ImageInserter) feature to include a graphic overlay
-// on your video. Enable or disable this feature for each output individually.
+// on your video. Enable or disable this feature for each input or output individually.
 // This setting is disabled by default.
 type ImageInserter struct {
 	_ struct{} `type:"structure"`
 
-	// Image to insert. Must be 32 bit windows BMP, PNG, or TGA file. Must not be
-	// larger than the output frames.
+	// Specify the images that you want to overlay on your video. The images must
+	// be PNG or TGA files.
 	InsertableImages []*InsertableImage `locationName:"insertableImages" type:"list"`
 }
 
@@ -8251,6 +8830,10 @@ type Input struct {
 	// video inputs.
 	DeblockFilter *string `locationName:"deblockFilter" type:"string" enum:"InputDeblockFilter"`
 
+	// If the input file is encrypted, decryption settings to decrypt the media
+	// file
+	DecryptionSettings *InputDecryptionSettings `locationName:"decryptionSettings" type:"structure"`
+
 	// Enable Denoise (InputDenoiseFilter) to filter noise from the input. Default
 	// is disabled. Only applicable to MPEG2, H.264, H.265, and uncompressed video
 	// inputs.
@@ -8273,6 +8856,11 @@ type Input struct {
 	// Use Filter strength (FilterStrength) to adjust the magnitude the input filter
 	// settings (Deblock and Denoise). The range is -5 to 5. Default is 0.
 	FilterStrength *int64 `locationName:"filterStrength" type:"integer"`
+
+	// Enable the Image inserter (ImageInserter) feature to include a graphic overlay
+	// on your video. Enable or disable this feature for each input individually.
+	// This setting is disabled by default.
+	ImageInserter *ImageInserter `locationName:"imageInserter" type:"structure"`
 
 	// (InputClippings) contains sets of start and end times that together specify
 	// a portion of the input to be used in the outputs. If you provide only a start
@@ -8345,6 +8933,16 @@ func (s *Input) Validate() error {
 			}
 		}
 	}
+	if s.DecryptionSettings != nil {
+		if err := s.DecryptionSettings.Validate(); err != nil {
+			invalidParams.AddNested("DecryptionSettings", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.ImageInserter != nil {
+		if err := s.ImageInserter.Validate(); err != nil {
+			invalidParams.AddNested("ImageInserter", err.(request.ErrInvalidParams))
+		}
+	}
 	if s.VideoSelector != nil {
 		if err := s.VideoSelector.Validate(); err != nil {
 			invalidParams.AddNested("VideoSelector", err.(request.ErrInvalidParams))
@@ -8381,6 +8979,12 @@ func (s *Input) SetDeblockFilter(v string) *Input {
 	return s
 }
 
+// SetDecryptionSettings sets the DecryptionSettings field's value.
+func (s *Input) SetDecryptionSettings(v *InputDecryptionSettings) *Input {
+	s.DecryptionSettings = v
+	return s
+}
+
 // SetDenoiseFilter sets the DenoiseFilter field's value.
 func (s *Input) SetDenoiseFilter(v string) *Input {
 	s.DenoiseFilter = &v
@@ -8402,6 +9006,12 @@ func (s *Input) SetFilterEnable(v string) *Input {
 // SetFilterStrength sets the FilterStrength field's value.
 func (s *Input) SetFilterStrength(v int64) *Input {
 	s.FilterStrength = &v
+	return s
+}
+
+// SetImageInserter sets the ImageInserter field's value.
+func (s *Input) SetImageInserter(v *ImageInserter) *Input {
+	s.ImageInserter = v
 	return s
 }
 
@@ -8485,6 +9095,76 @@ func (s *InputClipping) SetStartTimecode(v string) *InputClipping {
 	return s
 }
 
+// Specify the decryption settings used to decrypt encrypted input
+type InputDecryptionSettings struct {
+	_ struct{} `type:"structure"`
+
+	// This specifies how the encrypted file needs to be decrypted.
+	DecryptionMode *string `locationName:"decryptionMode" type:"string" enum:"DecryptionMode"`
+
+	// Decryption key either 128 or 192 or 256 bits encrypted with KMS
+	EncryptedDecryptionKey *string `locationName:"encryptedDecryptionKey" min:"24" type:"string"`
+
+	// Initialization Vector 96 bits (CTR/GCM mode only) or 128 bits.
+	InitializationVector *string `locationName:"initializationVector" min:"16" type:"string"`
+
+	// The AWS region in which decryption key was encrypted with KMS
+	KmsKeyRegion *string `locationName:"kmsKeyRegion" min:"9" type:"string"`
+}
+
+// String returns the string representation
+func (s InputDecryptionSettings) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InputDecryptionSettings) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *InputDecryptionSettings) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "InputDecryptionSettings"}
+	if s.EncryptedDecryptionKey != nil && len(*s.EncryptedDecryptionKey) < 24 {
+		invalidParams.Add(request.NewErrParamMinLen("EncryptedDecryptionKey", 24))
+	}
+	if s.InitializationVector != nil && len(*s.InitializationVector) < 16 {
+		invalidParams.Add(request.NewErrParamMinLen("InitializationVector", 16))
+	}
+	if s.KmsKeyRegion != nil && len(*s.KmsKeyRegion) < 9 {
+		invalidParams.Add(request.NewErrParamMinLen("KmsKeyRegion", 9))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetDecryptionMode sets the DecryptionMode field's value.
+func (s *InputDecryptionSettings) SetDecryptionMode(v string) *InputDecryptionSettings {
+	s.DecryptionMode = &v
+	return s
+}
+
+// SetEncryptedDecryptionKey sets the EncryptedDecryptionKey field's value.
+func (s *InputDecryptionSettings) SetEncryptedDecryptionKey(v string) *InputDecryptionSettings {
+	s.EncryptedDecryptionKey = &v
+	return s
+}
+
+// SetInitializationVector sets the InitializationVector field's value.
+func (s *InputDecryptionSettings) SetInitializationVector(v string) *InputDecryptionSettings {
+	s.InitializationVector = &v
+	return s
+}
+
+// SetKmsKeyRegion sets the KmsKeyRegion field's value.
+func (s *InputDecryptionSettings) SetKmsKeyRegion(v string) *InputDecryptionSettings {
+	s.KmsKeyRegion = &v
+	return s
+}
+
 // Specified video input in a template.
 type InputTemplate struct {
 	_ struct{} `type:"structure"`
@@ -8526,6 +9206,11 @@ type InputTemplate struct {
 	// Use Filter strength (FilterStrength) to adjust the magnitude the input filter
 	// settings (Deblock and Denoise). The range is -5 to 5. Default is 0.
 	FilterStrength *int64 `locationName:"filterStrength" type:"integer"`
+
+	// Enable the Image inserter (ImageInserter) feature to include a graphic overlay
+	// on your video. Enable or disable this feature for each input individually.
+	// This setting is disabled by default.
+	ImageInserter *ImageInserter `locationName:"imageInserter" type:"structure"`
 
 	// (InputClippings) contains sets of start and end times that together specify
 	// a portion of the input to be used in the outputs. If you provide only a start
@@ -8598,6 +9283,11 @@ func (s *InputTemplate) Validate() error {
 			}
 		}
 	}
+	if s.ImageInserter != nil {
+		if err := s.ImageInserter.Validate(); err != nil {
+			invalidParams.AddNested("ImageInserter", err.(request.ErrInvalidParams))
+		}
+	}
 	if s.VideoSelector != nil {
 		if err := s.VideoSelector.Validate(); err != nil {
 			invalidParams.AddNested("VideoSelector", err.(request.ErrInvalidParams))
@@ -8652,6 +9342,12 @@ func (s *InputTemplate) SetFilterStrength(v int64) *InputTemplate {
 	return s
 }
 
+// SetImageInserter sets the ImageInserter field's value.
+func (s *InputTemplate) SetImageInserter(v *ImageInserter) *InputTemplate {
+	s.ImageInserter = v
+	return s
+}
+
 // SetInputClippings sets the InputClippings field's value.
 func (s *InputTemplate) SetInputClippings(v []*InputClipping) *InputTemplate {
 	s.InputClippings = v
@@ -8682,45 +9378,49 @@ func (s *InputTemplate) SetVideoSelector(v *VideoSelector) *InputTemplate {
 	return s
 }
 
-// Settings for Insertable Image
+// Settings that specify how your overlay appears.
 type InsertableImage struct {
 	_ struct{} `type:"structure"`
 
-	// Use Duration (Duration) to set the time, in milliseconds, for the image to
-	// remain on the output video.
+	// Set the time, in milliseconds, for the image to remain on the output video.
 	Duration *int64 `locationName:"duration" type:"integer"`
 
-	// Use Fade in (FadeIut) to set the length, in milliseconds, of the inserted
-	// image fade in. If you don't specify a value for Fade in, the image will appear
-	// abruptly at the Start time.
+	// Set the length of time, in milliseconds, between the Start time that you
+	// specify for the image insertion and the time that the image appears at full
+	// opacity. Full opacity is the level that you specify for the opacity setting.
+	// If you don't specify a value for Fade-in, the image will appear abruptly
+	// at the overlay start time.
 	FadeIn *int64 `locationName:"fadeIn" type:"integer"`
 
-	// Use Fade out (FadeOut) to set the length, in milliseconds, of the inserted
-	// image fade out. If you don't specify a value for Fade out, the image will
-	// disappear abruptly at the end of the inserted image duration.
+	// Specify the length of time, in milliseconds, between the end of the time
+	// that you have specified for the image overlay Duration and when the overlaid
+	// image has faded to total transparency. If you don't specify a value for Fade-out,
+	// the image will disappear abruptly at the end of the inserted image duration.
 	FadeOut *int64 `locationName:"fadeOut" type:"integer"`
 
-	// Specify the Height (Height) of the inserted image. Use a value that is less
-	// than or equal to the video resolution height. Leave this setting blank to
-	// use the native height of the image.
+	// Specify the height of the inserted image in pixels. If you specify a value
+	// that's larger than the video resolution height, the service will crop your
+	// overlaid image to fit. To use the native height of the image, keep this setting
+	// blank.
 	Height *int64 `locationName:"height" type:"integer"`
 
 	// Use Image location (imageInserterInput) to specify the Amazon S3 location
-	// of the image to be inserted into the output. Use a 32 bit BMP, PNG, or TGA
-	// file that fits inside the video frame.
+	// of the image to be inserted into the output. Use a PNG or TGA file that fits
+	// inside the video frame.
 	ImageInserterInput *string `locationName:"imageInserterInput" min:"14" type:"string"`
 
 	// Use Left (ImageX) to set the distance, in pixels, between the inserted image
-	// and the left edge of the frame. Required for BMP, PNG and TGA input.
+	// and the left edge of the video frame. Required for any image overlay that
+	// you specify.
 	ImageX *int64 `locationName:"imageX" type:"integer"`
 
-	// Use Top (ImageY) to set the distance, in pixels, between the inserted image
-	// and the top edge of the video frame. Required for BMP, PNG and TGA input.
+	// Use Top (ImageY) to set the distance, in pixels, between the overlaid image
+	// and the top edge of the video frame. Required for any image overlay that
+	// you specify.
 	ImageY *int64 `locationName:"imageY" type:"integer"`
 
-	// Use Layer (Layer) to specify how overlapping inserted images appear. Images
-	// with higher values of layer appear on top of images with lower values of
-	// layer.
+	// Specify how overlapping inserted images appear. Images with higher values
+	// for Layer appear on top of images with lower values for Layer.
 	Layer *int64 `locationName:"layer" type:"integer"`
 
 	// Use Opacity (Opacity) to specify how much of the underlying video shows through
@@ -8733,9 +9433,10 @@ type InsertableImage struct {
 	// format.
 	StartTime *string `locationName:"startTime" type:"string"`
 
-	// Specify the Width (Width) of the inserted image. Use a value that is less
-	// than or equal to the video resolution width. Leave this setting blank to
-	// use the native width of the image.
+	// Specify the width of the inserted image in pixels. If you specify a value
+	// that's larger than the video resolution width, the service will crop your
+	// overlaid image to fit. To use the native width of the image, keep this setting
+	// blank.
 	Width *int64 `locationName:"width" type:"integer"`
 }
 
@@ -8752,29 +9453,8 @@ func (s InsertableImage) GoString() string {
 // Validate inspects the fields of the type to determine if they are valid.
 func (s *InsertableImage) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "InsertableImage"}
-	if s.Duration != nil && *s.Duration < -2.147483648e+09 {
-		invalidParams.Add(request.NewErrParamMinValue("Duration", -2.147483648e+09))
-	}
-	if s.FadeIn != nil && *s.FadeIn < -2.147483648e+09 {
-		invalidParams.Add(request.NewErrParamMinValue("FadeIn", -2.147483648e+09))
-	}
-	if s.FadeOut != nil && *s.FadeOut < -2.147483648e+09 {
-		invalidParams.Add(request.NewErrParamMinValue("FadeOut", -2.147483648e+09))
-	}
-	if s.Height != nil && *s.Height < -2.147483648e+09 {
-		invalidParams.Add(request.NewErrParamMinValue("Height", -2.147483648e+09))
-	}
 	if s.ImageInserterInput != nil && len(*s.ImageInserterInput) < 14 {
 		invalidParams.Add(request.NewErrParamMinLen("ImageInserterInput", 14))
-	}
-	if s.ImageX != nil && *s.ImageX < -2.147483648e+09 {
-		invalidParams.Add(request.NewErrParamMinValue("ImageX", -2.147483648e+09))
-	}
-	if s.ImageY != nil && *s.ImageY < -2.147483648e+09 {
-		invalidParams.Add(request.NewErrParamMinValue("ImageY", -2.147483648e+09))
-	}
-	if s.Width != nil && *s.Width < -2.147483648e+09 {
-		invalidParams.Add(request.NewErrParamMinValue("Width", -2.147483648e+09))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -9023,6 +9703,10 @@ type JobSettings struct {
 	// to create the output.
 	Inputs []*Input `locationName:"inputs" type:"list"`
 
+	// Overlay motion graphics on top of your video. The motion graphics that you
+	// specify here appear on all outputs in all output groups.
+	MotionImageInserter *MotionImageInserter `locationName:"motionImageInserter" type:"structure"`
+
 	// Settings for Nielsen Configuration
 	NielsenConfiguration *NielsenConfiguration `locationName:"nielsenConfiguration" type:"structure"`
 
@@ -9078,6 +9762,11 @@ func (s *JobSettings) Validate() error {
 			}
 		}
 	}
+	if s.MotionImageInserter != nil {
+		if err := s.MotionImageInserter.Validate(); err != nil {
+			invalidParams.AddNested("MotionImageInserter", err.(request.ErrInvalidParams))
+		}
+	}
 	if s.OutputGroups != nil {
 		for i, v := range s.OutputGroups {
 			if v == nil {
@@ -9110,6 +9799,12 @@ func (s *JobSettings) SetAvailBlanking(v *AvailBlanking) *JobSettings {
 // SetInputs sets the Inputs field's value.
 func (s *JobSettings) SetInputs(v []*Input) *JobSettings {
 	s.Inputs = v
+	return s
+}
+
+// SetMotionImageInserter sets the MotionImageInserter field's value.
+func (s *JobSettings) SetMotionImageInserter(v *MotionImageInserter) *JobSettings {
+	s.MotionImageInserter = v
 	return s
 }
 
@@ -9260,6 +9955,10 @@ type JobTemplateSettings struct {
 	// multiple inputs when referencing a job template.
 	Inputs []*InputTemplate `locationName:"inputs" type:"list"`
 
+	// Overlay motion graphics on top of your video. The motion graphics that you
+	// specify here appear on all outputs in all output groups.
+	MotionImageInserter *MotionImageInserter `locationName:"motionImageInserter" type:"structure"`
+
 	// Settings for Nielsen Configuration
 	NielsenConfiguration *NielsenConfiguration `locationName:"nielsenConfiguration" type:"structure"`
 
@@ -9315,6 +10014,11 @@ func (s *JobTemplateSettings) Validate() error {
 			}
 		}
 	}
+	if s.MotionImageInserter != nil {
+		if err := s.MotionImageInserter.Validate(); err != nil {
+			invalidParams.AddNested("MotionImageInserter", err.(request.ErrInvalidParams))
+		}
+	}
 	if s.OutputGroups != nil {
 		for i, v := range s.OutputGroups {
 			if v == nil {
@@ -9347,6 +10051,12 @@ func (s *JobTemplateSettings) SetAvailBlanking(v *AvailBlanking) *JobTemplateSet
 // SetInputs sets the Inputs field's value.
 func (s *JobTemplateSettings) SetInputs(v []*InputTemplate) *JobTemplateSettings {
 	s.Inputs = v
+	return s
+}
+
+// SetMotionImageInserter sets the MotionImageInserter field's value.
+func (s *JobTemplateSettings) SetMotionImageInserter(v *MotionImageInserter) *JobTemplateSettings {
+	s.MotionImageInserter = v
 	return s
 }
 
@@ -10506,6 +11216,215 @@ func (s *M3u8Settings) SetTransportStreamId(v int64) *M3u8Settings {
 // SetVideoPid sets the VideoPid field's value.
 func (s *M3u8Settings) SetVideoPid(v int64) *M3u8Settings {
 	s.VideoPid = &v
+	return s
+}
+
+// Overlay motion graphics on top of your video at the time that you specify.
+type MotionImageInserter struct {
+	_ struct{} `type:"structure"`
+
+	// If your motion graphic asset is a .mov file, keep this setting unspecified.
+	// If your motion graphic asset is a series of .png files, specify the framerate
+	// of the overlay in frames per second, as a fraction. For example, specify
+	// 24 fps as 24/1. Make sure that the number of images in your series matches
+	// the framerate and your intended overlay duration. For example, if you want
+	// a 30-second overlay at 30 fps, you should have 900 .png images. This overlay
+	// framerate doesn't need to match the framerate of the underlying video.
+	Framerate *MotionImageInsertionFramerate `locationName:"framerate" type:"structure"`
+
+	// Specify the .mov file or series of .png files that you want to overlay on
+	// your video. For .png files, provide the file name of the first file in the
+	// series. Make sure that the names of the .png files end with sequential numbers
+	// that specify the order that they are played in. For example, overlay_000.png,
+	// overlay_001.png, overlay_002.png, and so on. The sequence must start at zero,
+	// and each image file name must have the same number of digits. Pad your initial
+	// file names with enough zeros to complete the sequence. For example, if the
+	// first image is overlay_0.png, there can be only 10 images in the sequence,
+	// with the last image being overlay_9.png. But if the first image is overlay_00.png,
+	// there can be 100 images in the sequence.
+	Input *string `locationName:"input" min:"14" type:"string"`
+
+	// Choose the type of motion graphic asset that you are providing for your overlay.
+	// You can choose either a .mov file or a series of .png files.
+	InsertionMode *string `locationName:"insertionMode" type:"string" enum:"MotionImageInsertionMode"`
+
+	// Use Offset to specify the placement of your motion graphic overlay on the
+	// video frame. Specify in pixels, from the upper-left corner of the frame.
+	// If you don't specify an offset, the service scales your overlay to the full
+	// size of the frame. Otherwise, the service inserts the overlay at its native
+	// resolution and scales the size up or down with any video scaling.
+	Offset *MotionImageInsertionOffset `locationName:"offset" type:"structure"`
+
+	// Specify whether your motion graphic overlay repeats on a loop or plays only
+	// once.
+	Playback *string `locationName:"playback" type:"string" enum:"MotionImagePlayback"`
+
+	// Specify when the motion overlay begins. Use timecode format (HH:MM:SS:FF
+	// or HH:MM:SS;FF). Make sure that the timecode you provide here takes into
+	// account how you have set up your timecode configuration under both job settings
+	// and input settings. The simplest way to do that is to set both to start at
+	// 0. If you need to set up your job to follow timecodes embedded in your source
+	// that don't start at zero, make sure that you specify a start time that is
+	// after the first embedded timecode. For more information, see https://docs.aws.amazon.com/mediaconvert/latest/ug/setting-up-timecode.html
+	// Find job-wide and input timecode configuration settings in your JSON job
+	// settings specification at settings>timecodeConfig>source and settings>inputs>timecodeSource.
+	StartTime *string `locationName:"startTime" min:"11" type:"string"`
+}
+
+// String returns the string representation
+func (s MotionImageInserter) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s MotionImageInserter) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *MotionImageInserter) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "MotionImageInserter"}
+	if s.Input != nil && len(*s.Input) < 14 {
+		invalidParams.Add(request.NewErrParamMinLen("Input", 14))
+	}
+	if s.StartTime != nil && len(*s.StartTime) < 11 {
+		invalidParams.Add(request.NewErrParamMinLen("StartTime", 11))
+	}
+	if s.Framerate != nil {
+		if err := s.Framerate.Validate(); err != nil {
+			invalidParams.AddNested("Framerate", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetFramerate sets the Framerate field's value.
+func (s *MotionImageInserter) SetFramerate(v *MotionImageInsertionFramerate) *MotionImageInserter {
+	s.Framerate = v
+	return s
+}
+
+// SetInput sets the Input field's value.
+func (s *MotionImageInserter) SetInput(v string) *MotionImageInserter {
+	s.Input = &v
+	return s
+}
+
+// SetInsertionMode sets the InsertionMode field's value.
+func (s *MotionImageInserter) SetInsertionMode(v string) *MotionImageInserter {
+	s.InsertionMode = &v
+	return s
+}
+
+// SetOffset sets the Offset field's value.
+func (s *MotionImageInserter) SetOffset(v *MotionImageInsertionOffset) *MotionImageInserter {
+	s.Offset = v
+	return s
+}
+
+// SetPlayback sets the Playback field's value.
+func (s *MotionImageInserter) SetPlayback(v string) *MotionImageInserter {
+	s.Playback = &v
+	return s
+}
+
+// SetStartTime sets the StartTime field's value.
+func (s *MotionImageInserter) SetStartTime(v string) *MotionImageInserter {
+	s.StartTime = &v
+	return s
+}
+
+// For motion overlays that don't have a built-in framerate, specify the framerate
+// of the overlay in frames per second, as a fraction. For example, specify
+// 24 fps as 24/1. The overlay framerate doesn't need to match the framerate
+// of the underlying video.
+type MotionImageInsertionFramerate struct {
+	_ struct{} `type:"structure"`
+
+	// The bottom of the fraction that expresses your overlay framerate. For example,
+	// if your framerate is 24 fps, set this value to 1.
+	FramerateDenominator *int64 `locationName:"framerateDenominator" min:"1" type:"integer"`
+
+	// The top of the fraction that expresses your overlay framerate. For example,
+	// if your framerate is 24 fps, set this value to 24.
+	FramerateNumerator *int64 `locationName:"framerateNumerator" min:"1" type:"integer"`
+}
+
+// String returns the string representation
+func (s MotionImageInsertionFramerate) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s MotionImageInsertionFramerate) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *MotionImageInsertionFramerate) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "MotionImageInsertionFramerate"}
+	if s.FramerateDenominator != nil && *s.FramerateDenominator < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("FramerateDenominator", 1))
+	}
+	if s.FramerateNumerator != nil && *s.FramerateNumerator < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("FramerateNumerator", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetFramerateDenominator sets the FramerateDenominator field's value.
+func (s *MotionImageInsertionFramerate) SetFramerateDenominator(v int64) *MotionImageInsertionFramerate {
+	s.FramerateDenominator = &v
+	return s
+}
+
+// SetFramerateNumerator sets the FramerateNumerator field's value.
+func (s *MotionImageInsertionFramerate) SetFramerateNumerator(v int64) *MotionImageInsertionFramerate {
+	s.FramerateNumerator = &v
+	return s
+}
+
+// Specify the offset between the upper-left corner of the video frame and the
+// top left corner of the overlay.
+type MotionImageInsertionOffset struct {
+	_ struct{} `type:"structure"`
+
+	// Set the distance, in pixels, between the overlay and the left edge of the
+	// video frame.
+	ImageX *int64 `locationName:"imageX" type:"integer"`
+
+	// Set the distance, in pixels, between the overlay and the top edge of the
+	// video frame.
+	ImageY *int64 `locationName:"imageY" type:"integer"`
+}
+
+// String returns the string representation
+func (s MotionImageInsertionOffset) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s MotionImageInsertionOffset) GoString() string {
+	return s.String()
+}
+
+// SetImageX sets the ImageX field's value.
+func (s *MotionImageInsertionOffset) SetImageX(v int64) *MotionImageInsertionOffset {
+	s.ImageX = &v
+	return s
+}
+
+// SetImageY sets the ImageY field's value.
+func (s *MotionImageInsertionOffset) SetImageY(v int64) *MotionImageInsertionOffset {
+	s.ImageY = &v
 	return s
 }
 
@@ -12448,7 +13367,7 @@ type ReservationPlan struct {
 	// renews (AUTO_RENEW) or expires (EXPIRE) at the end of the contract period.
 	RenewalType *string `locationName:"renewalType" type:"string" enum:"RenewalType"`
 
-	// Specifies the number of reserved transcode slots (RTSs) for this queue. The
+	// Specifies the number of reserved transcode slots (RTS) for this queue. The
 	// number of RTS determines how many jobs the queue can process in parallel;
 	// each RTS can process one job at a time. To increase this number, create a
 	// replacement contract through the AWS Elemental MediaConvert console.
@@ -12521,7 +13440,7 @@ type ReservationPlanSettings struct {
 	// RenewalType is a required field
 	RenewalType *string `locationName:"renewalType" type:"string" required:"true" enum:"RenewalType"`
 
-	// Specifies the number of reserved transcode slots (RTSs) for this queue. The
+	// Specifies the number of reserved transcode slots (RTS) for this queue. The
 	// number of RTS determines how many jobs the queue can process in parallel;
 	// each RTS can process one job at a time. To increase this number, create a
 	// replacement contract through the AWS Elemental MediaConvert console.
@@ -12643,6 +13562,11 @@ func (s *SccDestinationSettings) SetFramerate(v string) *SccDestinationSettings 
 type SpekeKeyProvider struct {
 	_ struct{} `type:"structure"`
 
+	// Optional AWS Certificate Manager ARN for a certificate to send to the keyprovider.
+	// The certificate holds a key used by the keyprovider to encrypt the keys in
+	// its response.
+	CertificateArn *string `locationName:"certificateArn" type:"string"`
+
 	// The SPEKE-compliant server uses Resource ID (ResourceId) to identify content.
 	ResourceId *string `locationName:"resourceId" type:"string"`
 
@@ -12665,6 +13589,12 @@ func (s SpekeKeyProvider) GoString() string {
 	return s.String()
 }
 
+// SetCertificateArn sets the CertificateArn field's value.
+func (s *SpekeKeyProvider) SetCertificateArn(v string) *SpekeKeyProvider {
+	s.CertificateArn = &v
+	return s
+}
+
 // SetResourceId sets the ResourceId field's value.
 func (s *SpekeKeyProvider) SetResourceId(v string) *SpekeKeyProvider {
 	s.ResourceId = &v
@@ -12683,7 +13613,7 @@ func (s *SpekeKeyProvider) SetUrl(v string) *SpekeKeyProvider {
 	return s
 }
 
-// Settings for use with a SPEKE key provider.
+// Use these settings to set up encryption with a static key provider.
 type StaticKeyProvider struct {
 	_ struct{} `type:"structure"`
 
@@ -13513,7 +14443,8 @@ func (s *UpdateQueueOutput) SetQueue(v *Queue) *UpdateQueueOutput {
 type VideoCodecSettings struct {
 	_ struct{} `type:"structure"`
 
-	// Type of video codec
+	// Specifies the video codec. This must be equal to one of the enum values defined
+	// by the object VideoCodec.
 	Codec *string `locationName:"codec" type:"string" enum:"VideoCodec"`
 
 	// Required when you set (Codec) under (VideoDescription)>(CodecSettings) to
@@ -13621,12 +14552,12 @@ func (s *VideoCodecSettings) SetProresSettings(v *ProresSettings) *VideoCodecSet
 type VideoDescription struct {
 	_ struct{} `type:"structure"`
 
-	// This setting only applies to H.264 and MPEG2 outputs. Use Insert AFD signaling
-	// (AfdSignaling) to specify whether the service includes AFD values in the
-	// output video data and what those values are. * Choose None to remove all
-	// AFD values from this output. * Choose Fixed to ignore input AFD values and
-	// instead encode the value specified in the job. * Choose Auto to calculate
-	// output AFD values based on the input AFD scaler data.
+	// This setting only applies to H.264, H.265, and MPEG2 outputs. Use Insert
+	// AFD signaling (AfdSignaling) to specify whether the service includes AFD
+	// values in the output video data and what those values are. * Choose None
+	// to remove all AFD values from this output. * Choose Fixed to ignore input
+	// AFD values and instead encode the value specified in the job. * Choose Auto
+	// to calculate output AFD values based on the input AFD scaler data.
 	AfdSignaling *string `locationName:"afdSignaling" type:"string" enum:"AfdSignaling"`
 
 	// Enable Anti-alias (AntiAlias) to enhance sharp edges in video output when
@@ -14336,12 +15267,12 @@ const (
 	Ac3MetadataControlUseConfigured = "USE_CONFIGURED"
 )
 
-// This setting only applies to H.264 and MPEG2 outputs. Use Insert AFD signaling
-// (AfdSignaling) to specify whether the service includes AFD values in the
-// output video data and what those values are. * Choose None to remove all
-// AFD values from this output. * Choose Fixed to ignore input AFD values and
-// instead encode the value specified in the job. * Choose Auto to calculate
-// output AFD values based on the input AFD scaler data.
+// This setting only applies to H.264, H.265, and MPEG2 outputs. Use Insert
+// AFD signaling (AfdSignaling) to specify whether the service includes AFD
+// values in the output video data and what those values are. * Choose None
+// to remove all AFD values from this output. * Choose Fixed to ignore input
+// AFD values and instead encode the value specified in the job. * Choose Auto
+// to calculate output AFD values based on the input AFD scaler data.
 const (
 	// AfdSignalingNone is a AfdSignaling enum value
 	AfdSignalingNone = "NONE"
@@ -14594,8 +15525,8 @@ const (
 	BurninSubtitleTeletextSpacingProportional = "PROPORTIONAL"
 )
 
-// Type of Caption output, including Burn-In, Embedded, SCC, SRT, TTML, WebVTT,
-// DVB-Sub, Teletext.
+// Type of Caption output, including Burn-In, Embedded (with or without SCTE20),
+// SCC, SMI, SRT, TTML, WebVTT, DVB-Sub, Teletext.
 const (
 	// CaptionDestinationTypeBurnIn is a CaptionDestinationType enum value
 	CaptionDestinationTypeBurnIn = "BURN_IN"
@@ -14606,11 +15537,20 @@ const (
 	// CaptionDestinationTypeEmbedded is a CaptionDestinationType enum value
 	CaptionDestinationTypeEmbedded = "EMBEDDED"
 
+	// CaptionDestinationTypeEmbeddedPlusScte20 is a CaptionDestinationType enum value
+	CaptionDestinationTypeEmbeddedPlusScte20 = "EMBEDDED_PLUS_SCTE20"
+
+	// CaptionDestinationTypeScte20PlusEmbedded is a CaptionDestinationType enum value
+	CaptionDestinationTypeScte20PlusEmbedded = "SCTE20_PLUS_EMBEDDED"
+
 	// CaptionDestinationTypeScc is a CaptionDestinationType enum value
 	CaptionDestinationTypeScc = "SCC"
 
 	// CaptionDestinationTypeSrt is a CaptionDestinationType enum value
 	CaptionDestinationTypeSrt = "SRT"
+
+	// CaptionDestinationTypeSmi is a CaptionDestinationType enum value
+	CaptionDestinationTypeSmi = "SMI"
 
 	// CaptionDestinationTypeTeletext is a CaptionDestinationType enum value
 	CaptionDestinationTypeTeletext = "TELETEXT"
@@ -14634,6 +15574,9 @@ const (
 	// CaptionSourceTypeEmbedded is a CaptionSourceType enum value
 	CaptionSourceTypeEmbedded = "EMBEDDED"
 
+	// CaptionSourceTypeScte20 is a CaptionSourceType enum value
+	CaptionSourceTypeScte20 = "SCTE20"
+
 	// CaptionSourceTypeScc is a CaptionSourceType enum value
 	CaptionSourceTypeScc = "SCC"
 
@@ -14645,6 +15588,9 @@ const (
 
 	// CaptionSourceTypeSrt is a CaptionSourceType enum value
 	CaptionSourceTypeSrt = "SRT"
+
+	// CaptionSourceTypeSmi is a CaptionSourceType enum value
+	CaptionSourceTypeSmi = "SMI"
 
 	// CaptionSourceTypeTeletext is a CaptionSourceType enum value
 	CaptionSourceTypeTeletext = "TELETEXT"
@@ -14888,14 +15834,30 @@ const (
 	DashIsoSegmentControlSegmentedFiles = "SEGMENTED_FILES"
 )
 
-// When ENABLED, segment durations are indicated in the manifest using SegmentTimeline
-// and SegmentTimeline will be promoted down into Representation from AdaptationSet.
+// When you enable Precise segment duration in manifests (writeSegmentTimelineInRepresentation),
+// your DASH manifest shows precise segment durations. The segment duration
+// information appears inside the SegmentTimeline element, inside SegmentTemplate
+// at the Representation level. When this feature isn't enabled, the segment
+// durations in your DASH manifest are approximate. The segment duration information
+// appears in the duration attribute of the SegmentTemplate element.
 const (
 	// DashIsoWriteSegmentTimelineInRepresentationEnabled is a DashIsoWriteSegmentTimelineInRepresentation enum value
 	DashIsoWriteSegmentTimelineInRepresentationEnabled = "ENABLED"
 
 	// DashIsoWriteSegmentTimelineInRepresentationDisabled is a DashIsoWriteSegmentTimelineInRepresentation enum value
 	DashIsoWriteSegmentTimelineInRepresentationDisabled = "DISABLED"
+)
+
+// This specifies how the encrypted file needs to be decrypted.
+const (
+	// DecryptionModeAesCtr is a DecryptionMode enum value
+	DecryptionModeAesCtr = "AES_CTR"
+
+	// DecryptionModeAesCbc is a DecryptionMode enum value
+	DecryptionModeAesCbc = "AES_CBC"
+
+	// DecryptionModeAesGcm is a DecryptionMode enum value
+	DecryptionModeAesGcm = "AES_GCM"
 )
 
 // Only applies when you set Deinterlacer (DeinterlaceMode) to Deinterlace (DEINTERLACE)
@@ -17034,6 +17996,26 @@ const (
 
 	// M3u8Scte35SourceNone is a M3u8Scte35Source enum value
 	M3u8Scte35SourceNone = "NONE"
+)
+
+// Choose the type of motion graphic asset that you are providing for your overlay.
+// You can choose either a .mov file or a series of .png files.
+const (
+	// MotionImageInsertionModeMov is a MotionImageInsertionMode enum value
+	MotionImageInsertionModeMov = "MOV"
+
+	// MotionImageInsertionModePng is a MotionImageInsertionMode enum value
+	MotionImageInsertionModePng = "PNG"
+)
+
+// Specify whether your motion graphic overlay repeats on a loop or plays only
+// once.
+const (
+	// MotionImagePlaybackOnce is a MotionImagePlayback enum value
+	MotionImagePlaybackOnce = "ONCE"
+
+	// MotionImagePlaybackRepeat is a MotionImagePlayback enum value
+	MotionImagePlaybackRepeat = "REPEAT"
 )
 
 // When enabled, include 'clap' atom if appropriate for the video output settings.

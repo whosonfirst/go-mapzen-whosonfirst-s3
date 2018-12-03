@@ -20,6 +20,7 @@ build:	fmt bin
 
 deps:	rmdeps
 	@GOPATH=$(GOPATH) go get -u "github.com/aws/aws-sdk-go"
+	@GOPATH=$(GOPATH) go get -u "github.com/aaronland/go-string"
 	@GOPATH=$(GOPATH) go get -u "github.com/whosonfirst/go-whosonfirst-mimetypes"
 
 vendor-deps: rmdeps deps

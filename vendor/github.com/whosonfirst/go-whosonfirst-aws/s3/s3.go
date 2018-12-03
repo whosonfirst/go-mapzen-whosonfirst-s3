@@ -10,6 +10,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"github.com/aaronland/go-string/dsn"	
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	aws_session "github.com/aws/aws-sdk-go/aws/session"
@@ -33,10 +34,11 @@ func ReadCloserFromBytes(b []byte) (io.ReadCloser, error) {
 }
 
 type S3Connection struct {
-	session *aws_session.Session
-	service *s3.S3
-	bucket  string
-	prefix  string
+	session  *aws_session.Session
+	service  *s3.S3
+	uploader *s3manager.Uploader
+	bucket   string
+	prefix   string
 }
 
 type S3Config struct {
@@ -96,56 +98,30 @@ func ValidS3CredentialsString() string {
 	return fmt.Sprintf("Valid credential flags are: %s", strings.Join(valid, ", "))
 }
 
-func NewS3ConfigFromString(str_config string) (*S3Config, error) {
+func NewS3ConfigFromString(str_dsn string) (*S3Config, error) {
 
+	dsn_map, err := dsn.StringToDSNWithKeys(str_dsn, "bucket", "region", "credentials")
+
+	if err != nil {
+		return nil, err
+	}
+
+	bucket, _ := dsn_map["bucket"]
+	region, _ := dsn_map["region"]
+	credentials, _ := dsn_map["credentials"]	
+	
 	config := S3Config{
-		Bucket:      "",
-		Prefix:      "",
-		Region:      "",
-		Credentials: "",
+		Bucket:      bucket,
+		Region:      region,
+		Credentials: credentials,
 	}
 
-	str_config = strings.Trim(str_config, " ")
+	prefix, ok := dsn_map["prefix"]
 
-	if str_config != "" {
-		parts := strings.Split(str_config, " ")
-
-		for _, p := range parts {
-
-			p = strings.Trim(p, " ")
-			kv := strings.Split(p, "=")
-
-			if len(kv) != 2 {
-				return nil, errors.New("Invalid count for config block")
-			}
-
-			switch kv[0] {
-			case "bucket":
-				config.Bucket = kv[1]
-			case "prefix":
-				config.Prefix = kv[1]
-			case "region":
-				config.Region = kv[1]
-			case "credentials":
-				config.Credentials = kv[1]
-			default:
-				return nil, errors.New("Invalid key for config block")
-			}
-		}
+	if ok {
+		config.Prefix = prefix
 	}
-
-	if config.Bucket == "" {
-		return nil, errors.New("Missing bucket config")
-	}
-
-	if config.Region == "" {
-		return nil, errors.New("Missing region config")
-	}
-
-	if config.Credentials == "" {
-		return nil, errors.New("Missing credentials config")
-	}
-
+	
 	return &config, nil
 }
 
@@ -166,11 +142,14 @@ func NewS3Connection(s3cfg *S3Config) (*S3Connection, error) {
 
 	service := s3.New(sess)
 
+	uploader := s3manager.NewUploader(sess)
+
 	c := S3Connection{
-		session: sess,
-		service: service,
-		bucket:  s3cfg.Bucket,
-		prefix:  s3cfg.Prefix,
+		session:  sess,
+		service:  service,
+		uploader: uploader,
+		bucket:   s3cfg.Bucket,
+		prefix:   s3cfg.Prefix,
 	}
 
 	return &c, nil
@@ -256,8 +235,6 @@ func (conn *S3Connection) Put(key string, fh io.ReadCloser, args ...interface{})
 	key = parsed[0]
 	key = conn.prepareKey(key)
 
-	uploader := s3manager.NewUploader(conn.session)
-
 	// https://docs.aws.amazon.com/sdk-for-go/api/service/s3/s3manager/#UploadInput
 
 	params := s3manager.UploadInput{
@@ -302,7 +279,7 @@ func (conn *S3Connection) Put(key string, fh io.ReadCloser, args ...interface{})
 		}
 	}
 
-	_, err := uploader.Upload(&params)
+	_, err := conn.uploader.Upload(&params)
 	return err
 }
 
