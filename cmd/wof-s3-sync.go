@@ -43,6 +43,8 @@ func main() {
 		*dsn = fmt.Sprintf("bucket=%s prefix=%s region=%s credentials=%s", *bucket, *prefix, *region, *credentials)
 	}
 
+	logger.Status("DSN is %s", *dsn)
+	
 	opts := sync.RemoteSyncOptions{
 		DSN:       *dsn,
 		ACL:       *acl,
