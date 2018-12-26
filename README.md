@@ -23,6 +23,37 @@ _Please write me_
 
 ## Tools
 
+### wof-s3-delete
+
+Given an ID (say `1159324849`) this will recursively delete everything in `PREFIX/115/932/484/9`.
+
+```
+./bin/wof-s3-delete -h
+Usage of ./bin/wof-s3-delete:
+  -dryrun
+    	Go through the motions but don't actually delete anything.
+  -lambda-clients int
+    	The number of concurrent Lambda functions to invoke. (default 10)
+  -lambda-dsn string
+    	A valid go-whosonfirst-aws DSN string for talking to Lambda.
+  -lambda-func string
+    	The name of the Lambda function to invoke.
+  -lambda-invoke
+    	Invoke this code as a Lambda function.
+  -lambda-type string
+    	A valid go-aws-sdk lambda.InvocationType string (default "RequestResponse")
+  -s3-dsn string
+    	A valid go-whosonfirst-aws DSN string for talking to S3.
+  -stdin
+    	Read IDs to delete from STDIN.
+```
+
+For example:
+
+```
+$> cat /usr/local/data/to-delete.csv | ./bin/wof-s3-delete -lambda-invoke -lambda-dsn 'region=us-west-2 credentials=session' -lambda-func DeleteMedia -dryrun -stdin
+```
+
 ### wof-s3-sync
 
 ```

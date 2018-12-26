@@ -137,18 +137,18 @@ func delete(ctx context.Context, opts DeleteOptions) error {
 
 func main() {
 
-	dryrun := flag.Bool("dryrun", false, "...")
-	stdin := flag.Bool("stdin", false, "...")
+	dryrun := flag.Bool("dryrun", false, "Go through the motions but don't actually delete anything.")
+	stdin := flag.Bool("stdin", false, "Read IDs to delete from STDIN.")
 
-	s3_dsn := flag.String("s3-dsn", "", "...")
+	s3_dsn := flag.String("s3-dsn", "", "A valid go-whosonfirst-aws DSN string for talking to S3.")
 
-	do_invoke := flag.Bool("lambda-invoke", false, "...")
-	lambda_dsn := flag.String("lambda-dsn", "", "...")
-	lambda_func := flag.String("lambda-func", "", "...")
-	lambda_clients := flag.Int("lambda-clients", 10, "...")
+	do_invoke := flag.Bool("lambda-invoke", false, "Invoke this code as a Lambda function.")
+	lambda_dsn := flag.String("lambda-dsn", "", "A valid go-whosonfirst-aws DSN string for talking to Lambda.")
+	lambda_func := flag.String("lambda-func", "", "The name of the Lambda function to invoke.")
+	lambda_clients := flag.Int("lambda-clients", 10, "The number of concurrent Lambda functions to invoke.")
 	lambda_type := flag.String("lambda-type", "RequestResponse", "A valid go-aws-sdk lambda.InvocationType string")
 
-	do_sqs := flag.Bool("sqs-invoke", false, "...")
+	// do_sqs := flag.Bool("sqs-invoke", false, "")
 	// sqs_dsn := flag.String("sqs-dsn", "", "...")
 
 	flag.Parse()
@@ -193,9 +193,11 @@ func main() {
 		}
 	}
 
-	if *do_sqs {
-		log.Fatal("Please write me")
-	}
+	/*
+		if *do_sqs {
+			log.Fatal("Please write me")
+		}
+	*/
 
 	/*
 
