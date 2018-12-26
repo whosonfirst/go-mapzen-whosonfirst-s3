@@ -26,6 +26,7 @@ deps: 	rmdeps
 	@GOPATH=$(shell pwd) go get -u "github.com/whosonfirst/go-whosonfirst-cli"
 	@GOPATH=$(shell pwd) go get -u "github.com/whosonfirst/go-whosonfirst-uri"
 	@GOPATH=$(shell pwd) go get -u "github.com/whosonfirst/go-whosonfirst-aws"
+	mv src/github.com/whosonfirst/go-whosonfirst-aws/vendor/github.com/aws/aws-sdk-go src/github.com/aws/
 
 vendor-deps: rmdeps deps
 	if test -d vendor; then rm -rf vendor; fi

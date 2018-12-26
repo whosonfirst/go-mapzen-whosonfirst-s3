@@ -2,10 +2,14 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"flag"
 	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/aws/aws-sdk-go/aws"	
+	aws_lambda "github.com/aws/aws-sdk-go/service/lambda"
 	"github.com/whosonfirst/go-whosonfirst-aws/s3"
+	"github.com/whosonfirst/go-whosonfirst-aws/session"
 	"github.com/whosonfirst/go-whosonfirst-uri"
 	"log"
 	"os"
@@ -68,12 +72,16 @@ func main() {
 	do_invoke := flag.Bool("invoke", false, "...")
 	dryrun := flag.Bool("dryrun", false, "...")
 
-	dsn := flag.String("dsn", "", "...")
+	s3_dsn := flag.String("s3-dsn", "", "...")
+
+	lambda_dsn := flag.String("lambda-dsn", "", "...")
+	lambda_func := flag.String("lambda-func", "", "...")
+	lambda_type := flag.String("lambda-type", "RequestResponse", "A valid go-aws-sdk lambda.InvocationType string")
 
 	flag.Parse()
 
 	opts := DeleteOptions{
-		DSN:    *dsn,
+		DSN:    *s3_dsn,
 		Dryrun: *dryrun,
 	}
 
@@ -86,7 +94,48 @@ func main() {
 
 	if *do_invoke {
 
-		log.Fatal("please write me")
+		sess, err := session.NewSessionWithDSN(*lambda_dsn)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		svc := aws_lambda.New(sess)
+
+		for _, str_id := range flag.Args() {
+
+			id, err := strconv.ParseInt(str_id, 10, 64)
+
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			opts.ID = id
+
+			payload, err := json.Marshal(opts)
+
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			input := &aws_lambda.InvokeInput{
+				FunctionName:   aws.String(*lambda_func),
+				InvocationType: aws.String(*lambda_type),
+				Payload:        payload,
+			}
+
+			if *input.InvocationType == "RequestResponse" {
+				input.LogType = aws.String("Tail")
+			}
+
+			rsp, err := svc.Invoke(input)
+
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			log.Println(rsp)
+		}
 
 	} else {
 
