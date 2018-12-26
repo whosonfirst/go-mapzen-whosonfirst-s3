@@ -51,8 +51,7 @@ func (c *Translate) DeleteTerminologyRequest(input *DeleteTerminologyInput) (req
 
 	output = &DeleteTerminologyOutput{}
 	req = c.newRequest(op, input, output)
-	req.Handlers.Unmarshal.Remove(jsonrpc.UnmarshalHandler)
-	req.Handlers.Unmarshal.PushBackNamed(protocol.UnmarshalDiscardBodyHandler)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -1026,7 +1025,7 @@ type TerminologyData struct {
 	// File is automatically base64 encoded/decoded by the SDK.
 	//
 	// File is a required field
-	File []byte `type:"blob" required:"true"`
+	File []byte `type:"blob" required:"true" sensitive:"true"`
 
 	// The data format of the custom terminology. Either CSV or TMX.
 	//

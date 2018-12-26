@@ -9,6 +9,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awsutil"
 	"github.com/aws/aws-sdk-go/aws/request"
+	"github.com/aws/aws-sdk-go/private/protocol"
+	"github.com/aws/aws-sdk-go/private/protocol/restjson"
 )
 
 const opBatchDescribeSimulationJob = "BatchDescribeSimulationJob"
@@ -140,6 +142,7 @@ func (c *RoboMaker) CancelSimulationJobRequest(input *CancelSimulationJobInput) 
 
 	output = &CancelSimulationJobOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(restjson.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -1005,6 +1008,7 @@ func (c *RoboMaker) DeleteFleetRequest(input *DeleteFleetInput) (req *request.Re
 
 	output = &DeleteFleetOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(restjson.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -1092,6 +1096,7 @@ func (c *RoboMaker) DeleteRobotRequest(input *DeleteRobotInput) (req *request.Re
 
 	output = &DeleteRobotOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(restjson.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -1179,6 +1184,7 @@ func (c *RoboMaker) DeleteRobotApplicationRequest(input *DeleteRobotApplicationI
 
 	output = &DeleteRobotApplicationOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(restjson.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -1266,6 +1272,7 @@ func (c *RoboMaker) DeleteSimulationApplicationRequest(input *DeleteSimulationAp
 
 	output = &DeleteSimulationApplicationOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(restjson.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -2615,6 +2622,7 @@ func (c *RoboMaker) RestartSimulationJobRequest(input *RestartSimulationJobInput
 
 	output = &RestartSimulationJobOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(restjson.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -3093,9 +3101,7 @@ type CreateDeploymentJobInput struct {
 
 	// Unique, case-sensitive identifier that you provide to ensure the idempotency
 	// of the request.
-	//
-	// ClientRequestToken is a required field
-	ClientRequestToken *string `locationName:"clientRequestToken" min:"1" type:"string" required:"true" idempotencyToken:"true"`
+	ClientRequestToken *string `locationName:"clientRequestToken" min:"1" type:"string" idempotencyToken:"true"`
 
 	// The deployment application configuration.
 	//
@@ -3124,9 +3130,6 @@ func (s CreateDeploymentJobInput) GoString() string {
 // Validate inspects the fields of the type to determine if they are valid.
 func (s *CreateDeploymentJobInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "CreateDeploymentJobInput"}
-	if s.ClientRequestToken == nil {
-		invalidParams.Add(request.NewErrParamRequired("ClientRequestToken"))
-	}
 	if s.ClientRequestToken != nil && len(*s.ClientRequestToken) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("ClientRequestToken", 1))
 	}
@@ -7917,9 +7920,7 @@ type SyncDeploymentJobInput struct {
 
 	// Unique, case-sensitive identifier that you provide to ensure the idempotency
 	// of the request.
-	//
-	// ClientRequestToken is a required field
-	ClientRequestToken *string `locationName:"clientRequestToken" min:"1" type:"string" required:"true" idempotencyToken:"true"`
+	ClientRequestToken *string `locationName:"clientRequestToken" min:"1" type:"string" idempotencyToken:"true"`
 
 	// The target fleet for the synchronization.
 	//
@@ -7940,9 +7941,6 @@ func (s SyncDeploymentJobInput) GoString() string {
 // Validate inspects the fields of the type to determine if they are valid.
 func (s *SyncDeploymentJobInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "SyncDeploymentJobInput"}
-	if s.ClientRequestToken == nil {
-		invalidParams.Add(request.NewErrParamRequired("ClientRequestToken"))
-	}
 	if s.ClientRequestToken != nil && len(*s.ClientRequestToken) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("ClientRequestToken", 1))
 	}

@@ -10,7 +10,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"github.com/aaronland/go-string/dsn"	
+	"github.com/aaronland/go-string/dsn"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	aws_session "github.com/aws/aws-sdk-go/aws/session"
@@ -108,8 +108,8 @@ func NewS3ConfigFromString(str_dsn string) (*S3Config, error) {
 
 	bucket, _ := dsn_map["bucket"]
 	region, _ := dsn_map["region"]
-	credentials, _ := dsn_map["credentials"]	
-	
+	credentials, _ := dsn_map["credentials"]
+
 	config := S3Config{
 		Bucket:      bucket,
 		Region:      region,
@@ -121,7 +121,7 @@ func NewS3ConfigFromString(str_dsn string) (*S3Config, error) {
 	if ok {
 		config.Prefix = prefix
 	}
-	
+
 	return &config, nil
 }
 

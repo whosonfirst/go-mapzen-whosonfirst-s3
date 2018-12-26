@@ -6,6 +6,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awsutil"
 	"github.com/aws/aws-sdk-go/aws/request"
+	"github.com/aws/aws-sdk-go/private/protocol"
+	"github.com/aws/aws-sdk-go/private/protocol/restjson"
 )
 
 const opAssociateRoleToGroup = "AssociateRoleToGroup"
@@ -1745,6 +1747,7 @@ func (c *Greengrass) DeleteConnectorDefinitionRequest(input *DeleteConnectorDefi
 
 	output = &DeleteConnectorDefinitionOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(restjson.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -1824,6 +1827,7 @@ func (c *Greengrass) DeleteCoreDefinitionRequest(input *DeleteCoreDefinitionInpu
 
 	output = &DeleteCoreDefinitionOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(restjson.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -1903,6 +1907,7 @@ func (c *Greengrass) DeleteDeviceDefinitionRequest(input *DeleteDeviceDefinition
 
 	output = &DeleteDeviceDefinitionOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(restjson.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -1982,6 +1987,7 @@ func (c *Greengrass) DeleteFunctionDefinitionRequest(input *DeleteFunctionDefini
 
 	output = &DeleteFunctionDefinitionOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(restjson.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -2061,6 +2067,7 @@ func (c *Greengrass) DeleteGroupRequest(input *DeleteGroupInput) (req *request.R
 
 	output = &DeleteGroupOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(restjson.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -2140,6 +2147,7 @@ func (c *Greengrass) DeleteLoggerDefinitionRequest(input *DeleteLoggerDefinition
 
 	output = &DeleteLoggerDefinitionOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(restjson.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -2219,6 +2227,7 @@ func (c *Greengrass) DeleteResourceDefinitionRequest(input *DeleteResourceDefini
 
 	output = &DeleteResourceDefinitionOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(restjson.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -2298,6 +2307,7 @@ func (c *Greengrass) DeleteSubscriptionDefinitionRequest(input *DeleteSubscripti
 
 	output = &DeleteSubscriptionDefinitionOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(restjson.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -6084,6 +6094,7 @@ func (c *Greengrass) StopBulkDeploymentRequest(input *StopBulkDeploymentInput) (
 
 	output = &StopBulkDeploymentOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(restjson.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -6250,6 +6261,7 @@ func (c *Greengrass) UpdateConnectorDefinitionRequest(input *UpdateConnectorDefi
 
 	output = &UpdateConnectorDefinitionOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(restjson.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -6329,6 +6341,7 @@ func (c *Greengrass) UpdateCoreDefinitionRequest(input *UpdateCoreDefinitionInpu
 
 	output = &UpdateCoreDefinitionOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(restjson.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -6408,6 +6421,7 @@ func (c *Greengrass) UpdateDeviceDefinitionRequest(input *UpdateDeviceDefinition
 
 	output = &UpdateDeviceDefinitionOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(restjson.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -6487,6 +6501,7 @@ func (c *Greengrass) UpdateFunctionDefinitionRequest(input *UpdateFunctionDefini
 
 	output = &UpdateFunctionDefinitionOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(restjson.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -6566,6 +6581,7 @@ func (c *Greengrass) UpdateGroupRequest(input *UpdateGroupInput) (req *request.R
 
 	output = &UpdateGroupOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(restjson.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -6727,6 +6743,7 @@ func (c *Greengrass) UpdateLoggerDefinitionRequest(input *UpdateLoggerDefinition
 
 	output = &UpdateLoggerDefinitionOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(restjson.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -6806,6 +6823,7 @@ func (c *Greengrass) UpdateResourceDefinitionRequest(input *UpdateResourceDefini
 
 	output = &UpdateResourceDefinitionOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(restjson.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -6885,6 +6903,7 @@ func (c *Greengrass) UpdateSubscriptionDefinitionRequest(input *UpdateSubscripti
 
 	output = &UpdateSubscriptionDefinitionOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(restjson.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
 	return
 }
 
@@ -6950,6 +6969,9 @@ func (s *AssociateRoleToGroupInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "AssociateRoleToGroupInput"}
 	if s.GroupId == nil {
 		invalidParams.Add(request.NewErrParamRequired("GroupId"))
+	}
+	if s.GroupId != nil && len(*s.GroupId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("GroupId", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -7556,6 +7578,9 @@ func (s *CreateConnectorDefinitionVersionInput) Validate() error {
 	if s.ConnectorDefinitionId == nil {
 		invalidParams.Add(request.NewErrParamRequired("ConnectorDefinitionId"))
 	}
+	if s.ConnectorDefinitionId != nil && len(*s.ConnectorDefinitionId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ConnectorDefinitionId", 1))
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -7763,6 +7788,9 @@ func (s *CreateCoreDefinitionVersionInput) Validate() error {
 	if s.CoreDefinitionId == nil {
 		invalidParams.Add(request.NewErrParamRequired("CoreDefinitionId"))
 	}
+	if s.CoreDefinitionId != nil && len(*s.CoreDefinitionId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("CoreDefinitionId", 1))
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -7869,6 +7897,9 @@ func (s *CreateDeploymentInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "CreateDeploymentInput"}
 	if s.GroupId == nil {
 		invalidParams.Add(request.NewErrParamRequired("GroupId"))
+	}
+	if s.GroupId != nil && len(*s.GroupId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("GroupId", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -8074,6 +8105,9 @@ func (s *CreateDeviceDefinitionVersionInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "CreateDeviceDefinitionVersionInput"}
 	if s.DeviceDefinitionId == nil {
 		invalidParams.Add(request.NewErrParamRequired("DeviceDefinitionId"))
+	}
+	if s.DeviceDefinitionId != nil && len(*s.DeviceDefinitionId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("DeviceDefinitionId", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -8285,6 +8319,9 @@ func (s *CreateFunctionDefinitionVersionInput) Validate() error {
 	if s.FunctionDefinitionId == nil {
 		invalidParams.Add(request.NewErrParamRequired("FunctionDefinitionId"))
 	}
+	if s.FunctionDefinitionId != nil && len(*s.FunctionDefinitionId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("FunctionDefinitionId", 1))
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -8386,6 +8423,9 @@ func (s *CreateGroupCertificateAuthorityInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "CreateGroupCertificateAuthorityInput"}
 	if s.GroupId == nil {
 		invalidParams.Add(request.NewErrParamRequired("GroupId"))
+	}
+	if s.GroupId != nil && len(*s.GroupId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("GroupId", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -8576,6 +8616,9 @@ func (s *CreateGroupVersionInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "CreateGroupVersionInput"}
 	if s.GroupId == nil {
 		invalidParams.Add(request.NewErrParamRequired("GroupId"))
+	}
+	if s.GroupId != nil && len(*s.GroupId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("GroupId", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -8820,6 +8863,9 @@ func (s *CreateLoggerDefinitionVersionInput) Validate() error {
 	if s.LoggerDefinitionId == nil {
 		invalidParams.Add(request.NewErrParamRequired("LoggerDefinitionId"))
 	}
+	if s.LoggerDefinitionId != nil && len(*s.LoggerDefinitionId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("LoggerDefinitionId", 1))
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -9026,6 +9072,9 @@ func (s *CreateResourceDefinitionVersionInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "CreateResourceDefinitionVersionInput"}
 	if s.ResourceDefinitionId == nil {
 		invalidParams.Add(request.NewErrParamRequired("ResourceDefinitionId"))
+	}
+	if s.ResourceDefinitionId != nil && len(*s.ResourceDefinitionId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ResourceDefinitionId", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -9346,6 +9395,9 @@ func (s *CreateSubscriptionDefinitionVersionInput) Validate() error {
 	if s.SubscriptionDefinitionId == nil {
 		invalidParams.Add(request.NewErrParamRequired("SubscriptionDefinitionId"))
 	}
+	if s.SubscriptionDefinitionId != nil && len(*s.SubscriptionDefinitionId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("SubscriptionDefinitionId", 1))
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -9518,6 +9570,9 @@ func (s *DeleteConnectorDefinitionInput) Validate() error {
 	if s.ConnectorDefinitionId == nil {
 		invalidParams.Add(request.NewErrParamRequired("ConnectorDefinitionId"))
 	}
+	if s.ConnectorDefinitionId != nil && len(*s.ConnectorDefinitionId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ConnectorDefinitionId", 1))
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -9567,6 +9622,9 @@ func (s *DeleteCoreDefinitionInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "DeleteCoreDefinitionInput"}
 	if s.CoreDefinitionId == nil {
 		invalidParams.Add(request.NewErrParamRequired("CoreDefinitionId"))
+	}
+	if s.CoreDefinitionId != nil && len(*s.CoreDefinitionId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("CoreDefinitionId", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -9618,6 +9676,9 @@ func (s *DeleteDeviceDefinitionInput) Validate() error {
 	if s.DeviceDefinitionId == nil {
 		invalidParams.Add(request.NewErrParamRequired("DeviceDefinitionId"))
 	}
+	if s.DeviceDefinitionId != nil && len(*s.DeviceDefinitionId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("DeviceDefinitionId", 1))
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -9667,6 +9728,9 @@ func (s *DeleteFunctionDefinitionInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "DeleteFunctionDefinitionInput"}
 	if s.FunctionDefinitionId == nil {
 		invalidParams.Add(request.NewErrParamRequired("FunctionDefinitionId"))
+	}
+	if s.FunctionDefinitionId != nil && len(*s.FunctionDefinitionId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("FunctionDefinitionId", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -9718,6 +9782,9 @@ func (s *DeleteGroupInput) Validate() error {
 	if s.GroupId == nil {
 		invalidParams.Add(request.NewErrParamRequired("GroupId"))
 	}
+	if s.GroupId != nil && len(*s.GroupId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("GroupId", 1))
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -9767,6 +9834,9 @@ func (s *DeleteLoggerDefinitionInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "DeleteLoggerDefinitionInput"}
 	if s.LoggerDefinitionId == nil {
 		invalidParams.Add(request.NewErrParamRequired("LoggerDefinitionId"))
+	}
+	if s.LoggerDefinitionId != nil && len(*s.LoggerDefinitionId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("LoggerDefinitionId", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -9818,6 +9888,9 @@ func (s *DeleteResourceDefinitionInput) Validate() error {
 	if s.ResourceDefinitionId == nil {
 		invalidParams.Add(request.NewErrParamRequired("ResourceDefinitionId"))
 	}
+	if s.ResourceDefinitionId != nil && len(*s.ResourceDefinitionId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ResourceDefinitionId", 1))
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -9867,6 +9940,9 @@ func (s *DeleteSubscriptionDefinitionInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "DeleteSubscriptionDefinitionInput"}
 	if s.SubscriptionDefinitionId == nil {
 		invalidParams.Add(request.NewErrParamRequired("SubscriptionDefinitionId"))
+	}
+	if s.SubscriptionDefinitionId != nil && len(*s.SubscriptionDefinitionId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("SubscriptionDefinitionId", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -10055,6 +10131,9 @@ func (s *DisassociateRoleFromGroupInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "DisassociateRoleFromGroupInput"}
 	if s.GroupId == nil {
 		invalidParams.Add(request.NewErrParamRequired("GroupId"))
+	}
+	if s.GroupId != nil && len(*s.GroupId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("GroupId", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -10543,6 +10622,9 @@ func (s *GetAssociatedRoleInput) Validate() error {
 	if s.GroupId == nil {
 		invalidParams.Add(request.NewErrParamRequired("GroupId"))
 	}
+	if s.GroupId != nil && len(*s.GroupId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("GroupId", 1))
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -10610,6 +10692,9 @@ func (s *GetBulkDeploymentStatusInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "GetBulkDeploymentStatusInput"}
 	if s.BulkDeploymentId == nil {
 		invalidParams.Add(request.NewErrParamRequired("BulkDeploymentId"))
+	}
+	if s.BulkDeploymentId != nil && len(*s.BulkDeploymentId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("BulkDeploymentId", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -10707,6 +10792,9 @@ func (s *GetConnectivityInfoInput) Validate() error {
 	if s.ThingName == nil {
 		invalidParams.Add(request.NewErrParamRequired("ThingName"))
 	}
+	if s.ThingName != nil && len(*s.ThingName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ThingName", 1))
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -10775,6 +10863,9 @@ func (s *GetConnectorDefinitionInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "GetConnectorDefinitionInput"}
 	if s.ConnectorDefinitionId == nil {
 		invalidParams.Add(request.NewErrParamRequired("ConnectorDefinitionId"))
+	}
+	if s.ConnectorDefinitionId != nil && len(*s.ConnectorDefinitionId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ConnectorDefinitionId", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -10887,8 +10978,14 @@ func (s *GetConnectorDefinitionVersionInput) Validate() error {
 	if s.ConnectorDefinitionId == nil {
 		invalidParams.Add(request.NewErrParamRequired("ConnectorDefinitionId"))
 	}
+	if s.ConnectorDefinitionId != nil && len(*s.ConnectorDefinitionId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ConnectorDefinitionId", 1))
+	}
 	if s.ConnectorDefinitionVersionId == nil {
 		invalidParams.Add(request.NewErrParamRequired("ConnectorDefinitionVersionId"))
+	}
+	if s.ConnectorDefinitionVersionId != nil && len(*s.ConnectorDefinitionVersionId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ConnectorDefinitionVersionId", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -11009,6 +11106,9 @@ func (s *GetCoreDefinitionInput) Validate() error {
 	if s.CoreDefinitionId == nil {
 		invalidParams.Add(request.NewErrParamRequired("CoreDefinitionId"))
 	}
+	if s.CoreDefinitionId != nil && len(*s.CoreDefinitionId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("CoreDefinitionId", 1))
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -11118,8 +11218,14 @@ func (s *GetCoreDefinitionVersionInput) Validate() error {
 	if s.CoreDefinitionId == nil {
 		invalidParams.Add(request.NewErrParamRequired("CoreDefinitionId"))
 	}
+	if s.CoreDefinitionId != nil && len(*s.CoreDefinitionId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("CoreDefinitionId", 1))
+	}
 	if s.CoreDefinitionVersionId == nil {
 		invalidParams.Add(request.NewErrParamRequired("CoreDefinitionVersionId"))
+	}
+	if s.CoreDefinitionVersionId != nil && len(*s.CoreDefinitionVersionId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("CoreDefinitionVersionId", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -11236,8 +11342,14 @@ func (s *GetDeploymentStatusInput) Validate() error {
 	if s.DeploymentId == nil {
 		invalidParams.Add(request.NewErrParamRequired("DeploymentId"))
 	}
+	if s.DeploymentId != nil && len(*s.DeploymentId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("DeploymentId", 1))
+	}
 	if s.GroupId == nil {
 		invalidParams.Add(request.NewErrParamRequired("GroupId"))
+	}
+	if s.GroupId != nil && len(*s.GroupId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("GroupId", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -11342,6 +11454,9 @@ func (s *GetDeviceDefinitionInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "GetDeviceDefinitionInput"}
 	if s.DeviceDefinitionId == nil {
 		invalidParams.Add(request.NewErrParamRequired("DeviceDefinitionId"))
+	}
+	if s.DeviceDefinitionId != nil && len(*s.DeviceDefinitionId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("DeviceDefinitionId", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -11454,8 +11569,14 @@ func (s *GetDeviceDefinitionVersionInput) Validate() error {
 	if s.DeviceDefinitionId == nil {
 		invalidParams.Add(request.NewErrParamRequired("DeviceDefinitionId"))
 	}
+	if s.DeviceDefinitionId != nil && len(*s.DeviceDefinitionId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("DeviceDefinitionId", 1))
+	}
 	if s.DeviceDefinitionVersionId == nil {
 		invalidParams.Add(request.NewErrParamRequired("DeviceDefinitionVersionId"))
+	}
+	if s.DeviceDefinitionVersionId != nil && len(*s.DeviceDefinitionVersionId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("DeviceDefinitionVersionId", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -11575,6 +11696,9 @@ func (s *GetFunctionDefinitionInput) Validate() error {
 	if s.FunctionDefinitionId == nil {
 		invalidParams.Add(request.NewErrParamRequired("FunctionDefinitionId"))
 	}
+	if s.FunctionDefinitionId != nil && len(*s.FunctionDefinitionId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("FunctionDefinitionId", 1))
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -11686,8 +11810,14 @@ func (s *GetFunctionDefinitionVersionInput) Validate() error {
 	if s.FunctionDefinitionId == nil {
 		invalidParams.Add(request.NewErrParamRequired("FunctionDefinitionId"))
 	}
+	if s.FunctionDefinitionId != nil && len(*s.FunctionDefinitionId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("FunctionDefinitionId", 1))
+	}
 	if s.FunctionDefinitionVersionId == nil {
 		invalidParams.Add(request.NewErrParamRequired("FunctionDefinitionVersionId"))
+	}
+	if s.FunctionDefinitionVersionId != nil && len(*s.FunctionDefinitionVersionId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("FunctionDefinitionVersionId", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -11811,8 +11941,14 @@ func (s *GetGroupCertificateAuthorityInput) Validate() error {
 	if s.CertificateAuthorityId == nil {
 		invalidParams.Add(request.NewErrParamRequired("CertificateAuthorityId"))
 	}
+	if s.CertificateAuthorityId != nil && len(*s.CertificateAuthorityId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("CertificateAuthorityId", 1))
+	}
 	if s.GroupId == nil {
 		invalidParams.Add(request.NewErrParamRequired("GroupId"))
+	}
+	if s.GroupId != nil && len(*s.GroupId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("GroupId", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -11898,6 +12034,9 @@ func (s *GetGroupCertificateConfigurationInput) Validate() error {
 	if s.GroupId == nil {
 		invalidParams.Add(request.NewErrParamRequired("GroupId"))
 	}
+	if s.GroupId != nil && len(*s.GroupId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("GroupId", 1))
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -11971,6 +12110,9 @@ func (s *GetGroupInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "GetGroupInput"}
 	if s.GroupId == nil {
 		invalidParams.Add(request.NewErrParamRequired("GroupId"))
+	}
+	if s.GroupId != nil && len(*s.GroupId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("GroupId", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -12081,8 +12223,14 @@ func (s *GetGroupVersionInput) Validate() error {
 	if s.GroupId == nil {
 		invalidParams.Add(request.NewErrParamRequired("GroupId"))
 	}
+	if s.GroupId != nil && len(*s.GroupId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("GroupId", 1))
+	}
 	if s.GroupVersionId == nil {
 		invalidParams.Add(request.NewErrParamRequired("GroupVersionId"))
+	}
+	if s.GroupVersionId != nil && len(*s.GroupVersionId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("GroupVersionId", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -12185,6 +12333,9 @@ func (s *GetLoggerDefinitionInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "GetLoggerDefinitionInput"}
 	if s.LoggerDefinitionId == nil {
 		invalidParams.Add(request.NewErrParamRequired("LoggerDefinitionId"))
+	}
+	if s.LoggerDefinitionId != nil && len(*s.LoggerDefinitionId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("LoggerDefinitionId", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -12297,8 +12448,14 @@ func (s *GetLoggerDefinitionVersionInput) Validate() error {
 	if s.LoggerDefinitionId == nil {
 		invalidParams.Add(request.NewErrParamRequired("LoggerDefinitionId"))
 	}
+	if s.LoggerDefinitionId != nil && len(*s.LoggerDefinitionId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("LoggerDefinitionId", 1))
+	}
 	if s.LoggerDefinitionVersionId == nil {
 		invalidParams.Add(request.NewErrParamRequired("LoggerDefinitionVersionId"))
+	}
+	if s.LoggerDefinitionVersionId != nil && len(*s.LoggerDefinitionVersionId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("LoggerDefinitionVersionId", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -12409,6 +12566,9 @@ func (s *GetResourceDefinitionInput) Validate() error {
 	if s.ResourceDefinitionId == nil {
 		invalidParams.Add(request.NewErrParamRequired("ResourceDefinitionId"))
 	}
+	if s.ResourceDefinitionId != nil && len(*s.ResourceDefinitionId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ResourceDefinitionId", 1))
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -12518,8 +12678,14 @@ func (s *GetResourceDefinitionVersionInput) Validate() error {
 	if s.ResourceDefinitionId == nil {
 		invalidParams.Add(request.NewErrParamRequired("ResourceDefinitionId"))
 	}
+	if s.ResourceDefinitionId != nil && len(*s.ResourceDefinitionId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ResourceDefinitionId", 1))
+	}
 	if s.ResourceDefinitionVersionId == nil {
 		invalidParams.Add(request.NewErrParamRequired("ResourceDefinitionVersionId"))
+	}
+	if s.ResourceDefinitionVersionId != nil && len(*s.ResourceDefinitionVersionId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ResourceDefinitionVersionId", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -12670,6 +12836,9 @@ func (s *GetSubscriptionDefinitionInput) Validate() error {
 	if s.SubscriptionDefinitionId == nil {
 		invalidParams.Add(request.NewErrParamRequired("SubscriptionDefinitionId"))
 	}
+	if s.SubscriptionDefinitionId != nil && len(*s.SubscriptionDefinitionId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("SubscriptionDefinitionId", 1))
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -12781,8 +12950,14 @@ func (s *GetSubscriptionDefinitionVersionInput) Validate() error {
 	if s.SubscriptionDefinitionId == nil {
 		invalidParams.Add(request.NewErrParamRequired("SubscriptionDefinitionId"))
 	}
+	if s.SubscriptionDefinitionId != nil && len(*s.SubscriptionDefinitionId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("SubscriptionDefinitionId", 1))
+	}
 	if s.SubscriptionDefinitionVersionId == nil {
 		invalidParams.Add(request.NewErrParamRequired("SubscriptionDefinitionVersionId"))
+	}
+	if s.SubscriptionDefinitionVersionId != nil && len(*s.SubscriptionDefinitionVersionId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("SubscriptionDefinitionVersionId", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -13132,6 +13307,9 @@ func (s *ListBulkDeploymentDetailedReportsInput) Validate() error {
 	if s.BulkDeploymentId == nil {
 		invalidParams.Add(request.NewErrParamRequired("BulkDeploymentId"))
 	}
+	if s.BulkDeploymentId != nil && len(*s.BulkDeploymentId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("BulkDeploymentId", 1))
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -13280,6 +13458,9 @@ func (s *ListConnectorDefinitionVersionsInput) Validate() error {
 	if s.ConnectorDefinitionId == nil {
 		invalidParams.Add(request.NewErrParamRequired("ConnectorDefinitionId"))
 	}
+	if s.ConnectorDefinitionId != nil && len(*s.ConnectorDefinitionId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ConnectorDefinitionId", 1))
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -13421,6 +13602,9 @@ func (s *ListCoreDefinitionVersionsInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "ListCoreDefinitionVersionsInput"}
 	if s.CoreDefinitionId == nil {
 		invalidParams.Add(request.NewErrParamRequired("CoreDefinitionId"))
+	}
+	if s.CoreDefinitionId != nil && len(*s.CoreDefinitionId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("CoreDefinitionId", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -13564,6 +13748,9 @@ func (s *ListDeploymentsInput) Validate() error {
 	if s.GroupId == nil {
 		invalidParams.Add(request.NewErrParamRequired("GroupId"))
 	}
+	if s.GroupId != nil && len(*s.GroupId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("GroupId", 1))
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -13648,6 +13835,9 @@ func (s *ListDeviceDefinitionVersionsInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "ListDeviceDefinitionVersionsInput"}
 	if s.DeviceDefinitionId == nil {
 		invalidParams.Add(request.NewErrParamRequired("DeviceDefinitionId"))
+	}
+	if s.DeviceDefinitionId != nil && len(*s.DeviceDefinitionId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("DeviceDefinitionId", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -13791,6 +13981,9 @@ func (s *ListFunctionDefinitionVersionsInput) Validate() error {
 	if s.FunctionDefinitionId == nil {
 		invalidParams.Add(request.NewErrParamRequired("FunctionDefinitionId"))
 	}
+	if s.FunctionDefinitionId != nil && len(*s.FunctionDefinitionId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("FunctionDefinitionId", 1))
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -13929,6 +14122,9 @@ func (s *ListGroupCertificateAuthoritiesInput) Validate() error {
 	if s.GroupId == nil {
 		invalidParams.Add(request.NewErrParamRequired("GroupId"))
 	}
+	if s.GroupId != nil && len(*s.GroupId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("GroupId", 1))
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -13991,6 +14187,9 @@ func (s *ListGroupVersionsInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "ListGroupVersionsInput"}
 	if s.GroupId == nil {
 		invalidParams.Add(request.NewErrParamRequired("GroupId"))
+	}
+	if s.GroupId != nil && len(*s.GroupId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("GroupId", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -14137,6 +14336,9 @@ func (s *ListLoggerDefinitionVersionsInput) Validate() error {
 	if s.LoggerDefinitionId == nil {
 		invalidParams.Add(request.NewErrParamRequired("LoggerDefinitionId"))
 	}
+	if s.LoggerDefinitionId != nil && len(*s.LoggerDefinitionId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("LoggerDefinitionId", 1))
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -14279,6 +14481,9 @@ func (s *ListResourceDefinitionVersionsInput) Validate() error {
 	if s.ResourceDefinitionId == nil {
 		invalidParams.Add(request.NewErrParamRequired("ResourceDefinitionId"))
 	}
+	if s.ResourceDefinitionId != nil && len(*s.ResourceDefinitionId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ResourceDefinitionId", 1))
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -14420,6 +14625,9 @@ func (s *ListSubscriptionDefinitionVersionsInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "ListSubscriptionDefinitionVersionsInput"}
 	if s.SubscriptionDefinitionId == nil {
 		invalidParams.Add(request.NewErrParamRequired("SubscriptionDefinitionId"))
+	}
+	if s.SubscriptionDefinitionId != nil && len(*s.SubscriptionDefinitionId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("SubscriptionDefinitionId", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -14729,6 +14937,9 @@ func (s *ResetDeploymentsInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "ResetDeploymentsInput"}
 	if s.GroupId == nil {
 		invalidParams.Add(request.NewErrParamRequired("GroupId"))
+	}
+	if s.GroupId != nil && len(*s.GroupId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("GroupId", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -15167,6 +15378,9 @@ func (s *StopBulkDeploymentInput) Validate() error {
 	if s.BulkDeploymentId == nil {
 		invalidParams.Add(request.NewErrParamRequired("BulkDeploymentId"))
 	}
+	if s.BulkDeploymentId != nil && len(*s.BulkDeploymentId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("BulkDeploymentId", 1))
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -15300,6 +15514,9 @@ func (s *UpdateConnectivityInfoInput) Validate() error {
 	if s.ThingName == nil {
 		invalidParams.Add(request.NewErrParamRequired("ThingName"))
 	}
+	if s.ThingName != nil && len(*s.ThingName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ThingName", 1))
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -15376,6 +15593,9 @@ func (s *UpdateConnectorDefinitionInput) Validate() error {
 	if s.ConnectorDefinitionId == nil {
 		invalidParams.Add(request.NewErrParamRequired("ConnectorDefinitionId"))
 	}
+	if s.ConnectorDefinitionId != nil && len(*s.ConnectorDefinitionId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ConnectorDefinitionId", 1))
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -15433,6 +15653,9 @@ func (s *UpdateCoreDefinitionInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "UpdateCoreDefinitionInput"}
 	if s.CoreDefinitionId == nil {
 		invalidParams.Add(request.NewErrParamRequired("CoreDefinitionId"))
+	}
+	if s.CoreDefinitionId != nil && len(*s.CoreDefinitionId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("CoreDefinitionId", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -15492,6 +15715,9 @@ func (s *UpdateDeviceDefinitionInput) Validate() error {
 	if s.DeviceDefinitionId == nil {
 		invalidParams.Add(request.NewErrParamRequired("DeviceDefinitionId"))
 	}
+	if s.DeviceDefinitionId != nil && len(*s.DeviceDefinitionId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("DeviceDefinitionId", 1))
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -15549,6 +15775,9 @@ func (s *UpdateFunctionDefinitionInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "UpdateFunctionDefinitionInput"}
 	if s.FunctionDefinitionId == nil {
 		invalidParams.Add(request.NewErrParamRequired("FunctionDefinitionId"))
+	}
+	if s.FunctionDefinitionId != nil && len(*s.FunctionDefinitionId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("FunctionDefinitionId", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -15608,6 +15837,9 @@ func (s *UpdateGroupCertificateConfigurationInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "UpdateGroupCertificateConfigurationInput"}
 	if s.GroupId == nil {
 		invalidParams.Add(request.NewErrParamRequired("GroupId"))
+	}
+	if s.GroupId != nil && len(*s.GroupId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("GroupId", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -15691,6 +15923,9 @@ func (s *UpdateGroupInput) Validate() error {
 	if s.GroupId == nil {
 		invalidParams.Add(request.NewErrParamRequired("GroupId"))
 	}
+	if s.GroupId != nil && len(*s.GroupId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("GroupId", 1))
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -15748,6 +15983,9 @@ func (s *UpdateLoggerDefinitionInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "UpdateLoggerDefinitionInput"}
 	if s.LoggerDefinitionId == nil {
 		invalidParams.Add(request.NewErrParamRequired("LoggerDefinitionId"))
+	}
+	if s.LoggerDefinitionId != nil && len(*s.LoggerDefinitionId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("LoggerDefinitionId", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -15807,6 +16045,9 @@ func (s *UpdateResourceDefinitionInput) Validate() error {
 	if s.ResourceDefinitionId == nil {
 		invalidParams.Add(request.NewErrParamRequired("ResourceDefinitionId"))
 	}
+	if s.ResourceDefinitionId != nil && len(*s.ResourceDefinitionId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ResourceDefinitionId", 1))
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -15864,6 +16105,9 @@ func (s *UpdateSubscriptionDefinitionInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "UpdateSubscriptionDefinitionInput"}
 	if s.SubscriptionDefinitionId == nil {
 		invalidParams.Add(request.NewErrParamRequired("SubscriptionDefinitionId"))
+	}
+	if s.SubscriptionDefinitionId != nil && len(*s.SubscriptionDefinitionId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("SubscriptionDefinitionId", 1))
 	}
 
 	if invalidParams.Len() > 0 {

@@ -9,6 +9,7 @@ self:   prep rmdeps
 	mkdir -p src/github.com/whosonfirst/go-whosonfirst-aws
 	cp -r config src/github.com/whosonfirst/go-whosonfirst-aws/
 	cp -r s3 src/github.com/whosonfirst/go-whosonfirst-aws/
+	cp -r sqs src/github.com/whosonfirst/go-whosonfirst-aws/
 	cp -r session src/github.com/whosonfirst/go-whosonfirst-aws/
 	cp -r util src/github.com/whosonfirst/go-whosonfirst-aws/
 	cp -r vendor/* src/
@@ -34,6 +35,7 @@ fmt:
 	go fmt cmd/*.go
 	go fmt config/*.go
 	go fmt s3/*.go
+	go fmt sqs/*.go
 	go fmt session/*.go
 	go fmt util/*.go
 
