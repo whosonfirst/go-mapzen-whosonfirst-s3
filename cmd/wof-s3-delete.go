@@ -2,10 +2,10 @@ package main
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/whosonfirst/go-whosonfirst-aws/s3"
-	"github.com/whosonfirst/go-whosonfirst-cli/flags"
 	"github.com/whosonfirst/go-whosonfirst-uri"
 	"log"
 	"os"
@@ -13,11 +13,27 @@ import (
 )
 
 type DeleteOptions struct {
-	DSN string `json:"dsn"`
-	ID  int64  `json:"id"`
+	DSN    string `json:"dsn"`
+	Dryrun bool   `json:"dryrun"`
+	ID     int64  `json:"id"`
 }
 
 func delete(ctx context.Context, opts DeleteOptions) error {
+
+	if opts.DSN == "" {
+
+		dsn, ok := os.LookupEnv("DSN")
+
+		if !ok {
+			return errors.New("Missing DSN")
+		}
+
+		opts.DSN = dsn
+	}
+
+	if opts.ID == 0 {
+		return errors.New("Invalid ID")
+	}
 
 	cfg, err := s3.NewS3ConfigFromString(opts.DSN)
 
@@ -39,27 +55,31 @@ func delete(ctx context.Context, opts DeleteOptions) error {
 		return err
 	}
 
-	log.Println("DELETE", path)
-	return nil
+	if opts.Dryrun {
+		log.Println("DELETE", path)
+		return nil
+	}
+
 	return conn.DeleteRecursive(path)
 }
 
 func main() {
 
-	do_lambda := flag.Bool("lambda", false, "...")
 	do_invoke := flag.Bool("invoke", false, "...")
+	dryrun := flag.Bool("dryrun", false, "...")
 
 	dsn := flag.String("dsn", "", "...")
 
 	flag.Parse()
 
-	flags.SetFlagsFromEnvVars("WOF_DELETE")
-
 	opts := DeleteOptions{
-		DSN: *dsn,
+		DSN:    *dsn,
+		Dryrun: *dryrun,
 	}
 
-	if *do_lambda {
+	_, do_lambda := os.LookupEnv("LAMBDA")
+
+	if do_lambda {
 		lambda.Start(delete)
 		os.Exit(0)
 	}
