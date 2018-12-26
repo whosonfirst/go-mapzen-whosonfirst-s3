@@ -4,3 +4,4 @@ src
 bin/wof-*
 !vendor/src
 .gitmodules
+*.zip

@@ -42,3 +42,11 @@ fmt:
 	go fmt cmd/*.go
 	go fmt sync/*.go
 	go fmt throttle/*.go
+
+lambda-delete:
+	@make self
+	if test -f main; then rm -f main; fi
+	if test -f s3-delete.zip; then rm -f s3-delete.zip; fi
+	@GOPATH=$(GOPATH) GOOS=linux go build -o main cmd/wof-s3-delete.go
+	zip s3-delete.zip main
+	rm -f main
