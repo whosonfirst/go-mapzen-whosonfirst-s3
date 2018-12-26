@@ -44,7 +44,7 @@ func main() {
 	}
 
 	logger.Status("DSN is %s", *dsn)
-	
+
 	opts := sync.RemoteSyncOptions{
 		DSN:       *dsn,
 		ACL:       *acl,
