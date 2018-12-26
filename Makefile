@@ -19,9 +19,11 @@ build:	fmt bin
 
 deps: 	rmdeps
 	@GOPATH=$(shell pwd) go get -u "github.com/hashicorp/golang-lru"
+	@GOPATH=$(shell pwd) go get -u "github.com/aws/aws-lambda-go/lambda"
 	@GOPATH=$(shell pwd) go get -u "github.com/throttled/throttled"
 	@GOPATH=$(shell pwd) go get -u "github.com/whosonfirst/go-whosonfirst-index"
 	@GOPATH=$(shell pwd) go get -u "github.com/whosonfirst/go-whosonfirst-log"
+	@GOPATH=$(shell pwd) go get -u "github.com/whosonfirst/go-whosonfirst-cli"
 	@GOPATH=$(shell pwd) go get -u "github.com/whosonfirst/go-whosonfirst-uri"
 	@GOPATH=$(shell pwd) go get -u "github.com/whosonfirst/go-whosonfirst-aws"
 
@@ -33,6 +35,7 @@ vendor-deps: rmdeps deps
 
 bin:	self
 	@GOPATH=$(GOPATH) go build -o bin/wof-s3-sync cmd/wof-s3-sync.go
+	@GOPATH=$(GOPATH) go build -o bin/wof-s3-delete cmd/wof-s3-delete.go
 
 fmt:
 	go fmt *.go 
