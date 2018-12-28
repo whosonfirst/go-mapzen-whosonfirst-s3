@@ -10,15 +10,12 @@ in PREFIX/115/932/484/9 - that is all (20181226/thisisaaronland)
 import (
 	"bufio"
 	"context"
-	"encoding/base64"
-	"encoding/json"
 	"errors"
 	"flag"
-	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/aws/aws-sdk-go/aws"
+	go_lambda "github.com/aws/aws-lambda-go/lambda"
 	aws_lambda "github.com/aws/aws-sdk-go/service/lambda"
+	"github.com/whosonfirst/go-whosonfirst-aws/lambda"
 	"github.com/whosonfirst/go-whosonfirst-aws/s3"
-	"github.com/whosonfirst/go-whosonfirst-aws/session"
 	"github.com/whosonfirst/go-whosonfirst-uri"
 	"log"
 	"os"
@@ -42,52 +39,6 @@ func append_id(ids []int64, str_id string) ([]int64, error) {
 
 	ids = append(ids, id)
 	return ids, nil
-}
-
-// this (or something like it) should be put in go-whosonfirst-aws/lambda as a
-// general purpose 80/20 wrapper function (20181226/thisisaaronland)
-
-func invoke(svc *aws_lambda.Lambda, lambda_func string, lambda_type string, opts interface{}) error {
-
-	payload, err := json.Marshal(opts)
-
-	if err != nil {
-		return err
-	}
-
-	input := &aws_lambda.InvokeInput{
-		FunctionName:   aws.String(lambda_func),
-		InvocationType: aws.String(lambda_type),
-		Payload:        payload,
-	}
-
-	if *input.InvocationType == "RequestResponse" {
-		input.LogType = aws.String("Tail")
-	}
-
-	rsp, err := svc.Invoke(input)
-
-	if err != nil {
-		return err
-	}
-
-	if *input.InvocationType == "RequestResponse" {
-
-		enc_result := *rsp.LogResult
-
-		result, err := base64.StdEncoding.DecodeString(enc_result)
-
-		if err != nil {
-			return err
-		}
-
-		if *rsp.StatusCode != 200 {
-			return errors.New(string(result))
-		}
-	}
-
-	log.Println("INVOKE", string(payload), *rsp.StatusCode)
-	return nil
 }
 
 func delete(ctx context.Context, opts DeleteOptions) error {
@@ -114,10 +65,6 @@ func delete(ctx context.Context, opts DeleteOptions) error {
 	}
 
 	conn, err := s3.NewS3Connection(cfg)
-
-	if err != nil {
-		return err
-	}
 
 	// add hooks for alternative paths (fullname, etc.)
 
@@ -161,7 +108,7 @@ func main() {
 	_, do_lambda := os.LookupEnv("LAMBDA")
 
 	if do_lambda {
-		lambda.Start(delete)
+		go_lambda.Start(delete)
 		os.Exit(0)
 	}
 
@@ -194,12 +141,6 @@ func main() {
 	}
 
 	/*
-		if *do_sqs {
-			log.Fatal("Please write me")
-		}
-	*/
-
-	/*
 
 		for example:
 
@@ -211,13 +152,12 @@ func main() {
 
 	if *do_invoke {
 
-		sess, err := session.NewSessionWithDSN(*lambda_dsn)
+		svc, err := lambda.NewLambdaWithDSN(*lambda_dsn)
 
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		svc := aws_lambda.New(sess)
 		wg := new(sync.WaitGroup)
 
 		throttle := make(chan bool, *lambda_clients)
@@ -240,7 +180,8 @@ func main() {
 				}()
 
 				opts.ID = id
-				err := invoke(svc, *lambda_func, *lambda_type, opts)
+
+				err := lambda.InvokeFunction(svc, *lambda_func, *lambda_type, opts)
 
 				if err != nil {
 					log.Println("ERROR", id, err)
