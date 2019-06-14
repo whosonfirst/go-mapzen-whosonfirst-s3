@@ -152,7 +152,7 @@ func main() {
 
 	if *do_invoke {
 
-		svc, err := lambda.NewLambdaWithDSN(*lambda_dsn)
+		svc, err := lambda.NewLambdaServiceWithDSN(*lambda_dsn)
 
 		if err != nil {
 			log.Fatal(err)
@@ -181,7 +181,7 @@ func main() {
 
 				opts.ID = id
 
-				err := lambda.InvokeFunction(svc, *lambda_func, *lambda_type, opts)
+				_, err := lambda.InvokeFunction(svc, *lambda_func, *lambda_type, opts)
 
 				if err != nil {
 					log.Println("ERROR", id, err)

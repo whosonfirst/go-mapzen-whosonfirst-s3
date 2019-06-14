@@ -51,6 +51,8 @@ github.com/whosonfirst/go-spatialite v0.0.0-20180220171945-cb1d9ed624a8 h1:5dtYg
 github.com/whosonfirst/go-spatialite v0.0.0-20180220171945-cb1d9ed624a8/go.mod h1:JnzadIex2v6ZyX6pLrjJ5CJ69e/ljYBCqxarHDMkMJ4=
 github.com/whosonfirst/go-whosonfirst-aws v0.1.0 h1:q+esqP3703MwJpgW90Ft9yyO1gmLZ7ymG5OLSvCmges=
 github.com/whosonfirst/go-whosonfirst-aws v0.1.0/go.mod h1:gyDrfJ24VQgpKqZeFxos7AWVMaelVBY0s0jRi05wz+Y=
+github.com/whosonfirst/go-whosonfirst-aws v0.1.1 h1:jfXm3BhELVVd/wV2aN3sxv+nUQ9WlQN7w+KVyM7BapU=
+github.com/whosonfirst/go-whosonfirst-aws v0.1.1/go.mod h1:fLBhkQw9FyC9/tW0Yo7aCkSHdYz69D4Cnwdit9sW1Gw=
 github.com/whosonfirst/go-whosonfirst-cli v0.1.0/go.mod h1:Edy+amD+fMq1QS1yxB3u8maA8I93q/LG7JRNh+fsdfc=
 github.com/whosonfirst/go-whosonfirst-crawl v0.1.0 h1:HD8xJcPME3nWoJH58SXT84q0tjBCF3Oc5jrmk5eIriQ=
 github.com/whosonfirst/go-whosonfirst-crawl v0.1.0/go.mod h1:ZIYj6wdjduyJkWHwg4P3gNeLgWMW9uHZOn04eusRnLI=
