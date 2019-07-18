@@ -12,7 +12,6 @@ import (
 	"github.com/whosonfirst/go-whosonfirst-uri"
 	"io"
 	"io/ioutil"
-	golog "log"
 	"path/filepath"
 )
 
@@ -137,11 +136,16 @@ func (s *RemoteSync) SyncFile(fh io.Reader, source string) error {
 	if err != nil {
 		return err
 	}
-
+	
 	root := filepath.Dir(rel_path)
 	fname := filepath.Base(source)
 	dest := filepath.Join(root, fname)
 
+	key := fmt.Sprintf("%s#ACL=%s", dest, s.options.ACL)
+	prepped_key := s.conn.PrepareKey(dest)
+	
+	s.options.Logger.Status("PUT %d (%s) AS '%s' AS '%s'", id, rel_path, key, prepped_key)
+	
 	if !s.options.Force {
 
 		body, err := ioutil.ReadAll(fh)
@@ -165,9 +169,8 @@ func (s *RemoteSync) SyncFile(fh io.Reader, source string) error {
 		fh = bytes.NewReader(body)
 	}
 
-	key := fmt.Sprintf("%s#ACL=%s", dest, s.options.ACL)
-	s.options.Logger.Status("PUT %s", key)
-
+	s.options.Logger.Status("PUT '%s'", key)
+	
 	if s.options.Dryrun {
 		s.options.Logger.Status("Running in dryrun mode, so not PUT-ing anything...")
 		return nil
@@ -175,7 +178,6 @@ func (s *RemoteSync) SyncFile(fh io.Reader, source string) error {
 
 	closer := ioutil.NopCloser(fh)
 
-	golog.Println("PUT", key)
 	err = s.conn.Put(key, closer)
 
 	// s3/utils.IsAWSErrorWithCode
