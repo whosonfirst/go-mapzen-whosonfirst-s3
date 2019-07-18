@@ -12,7 +12,7 @@ import (
 	"github.com/whosonfirst/go-whosonfirst-uri"
 	"io"
 	"io/ioutil"
-	_ "log"
+	golog "log"
 	"path/filepath"
 )
 
@@ -175,6 +175,7 @@ func (s *RemoteSync) SyncFile(fh io.Reader, source string) error {
 
 	closer := ioutil.NopCloser(fh)
 
+	golog.Println("PUT", key)
 	err = s.conn.Put(key, closer)
 
 	// s3/utils.IsAWSErrorWithCode

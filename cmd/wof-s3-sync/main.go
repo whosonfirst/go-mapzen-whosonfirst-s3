@@ -21,7 +21,7 @@ func main() {
 	var mode = flag.String("mode", "repo", desc_modes)
 	var region = flag.String("region", "us-east-1", "The region your S3 bucket lives in.")
 	var bucket = flag.String("bucket", "data.whosonfirst.org", "The name of your S3 bucket.")
-	var prefix = flag.String("prefix", "data", "The prefix (or subdirectory) for syncing data")
+	var prefix = flag.String("prefix", "", "The prefix (or subdirectory) for syncing data")
 	var credentials = flag.String("credentials", "iam:", "What kind of AWS credentials to use for syncing data.")
 	var dsn = flag.String("dsn", "", "A valid go-whosonfirst-aws DSN string.")
 	var acl = flag.String("acl", "public-read", "A valid AWS S3 ACL string for permissions.")
@@ -61,13 +61,13 @@ func main() {
 		logger.Fatal("Failed to create new sync because %s", err)
 	}
 
-	cb, err := sync.SyncFunc()
+	sync_cb, err := sync.SyncFunc()
 
 	if err != nil {
 		logger.Fatal("Failed to create sync callback because %s", err)
 	}
 
-	idx, err := index.NewIndexer(*mode, cb)
+	idx, err := index.NewIndexer(*mode, sync_cb)
 
 	if err != nil {
 		logger.Fatal("Failed to create indexer because %s", err)
@@ -105,27 +105,8 @@ func main() {
 		logger.Status("time to index %s : %v\n", path, tb)
 	}
 
-	// this code doesn't exist and I am not sure how I want to deal
-	// with it yet (20171212/thisisaaronland)
-
-	/*
-
-		if sync.HasRetries() {
-
-			idx, err = index.NewIndexer("files", cb)
-
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			for _, path := range sync.Retries() {
-
-				idx.IndexPath(path)
-			}
-		}
-
-	*/
-
+	// please handle retries here
+	
 	done_ch <- true
 
 	t2 := time.Since(t1)

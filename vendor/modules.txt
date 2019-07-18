@@ -1,11 +1,11 @@
-# github.com/aaronland/go-string v0.1.0
+# github.com/aaronland/go-string v0.1.1
 github.com/aaronland/go-string/dsn
 # github.com/aws/aws-lambda-go v1.11.1
 github.com/aws/aws-lambda-go/lambda
 github.com/aws/aws-lambda-go/lambda/handlertrace
 github.com/aws/aws-lambda-go/lambda/messages
 github.com/aws/aws-lambda-go/lambdacontext
-# github.com/aws/aws-sdk-go v1.19.31
+# github.com/aws/aws-sdk-go v1.20.21
 github.com/aws/aws-sdk-go/service/lambda
 github.com/aws/aws-sdk-go/aws
 github.com/aws/aws-sdk-go/aws/awsutil
@@ -24,6 +24,7 @@ github.com/aws/aws-sdk-go/aws/endpoints
 github.com/aws/aws-sdk-go/internal/sdkio
 github.com/aws/aws-sdk-go/internal/sdkrand
 github.com/aws/aws-sdk-go/private/protocol/rest
+github.com/aws/aws-sdk-go/private/protocol/json/jsonutil
 github.com/aws/aws-sdk-go/private/protocol/jsonrpc
 github.com/aws/aws-sdk-go/aws/corehandlers
 github.com/aws/aws-sdk-go/aws/credentials/processcreds
@@ -36,14 +37,13 @@ github.com/aws/aws-sdk-go/internal/s3err
 github.com/aws/aws-sdk-go/private/protocol/eventstream
 github.com/aws/aws-sdk-go/private/protocol/eventstream/eventstreamapi
 github.com/aws/aws-sdk-go/private/protocol/restxml
+github.com/aws/aws-sdk-go/private/protocol/xml/xmlutil
 github.com/aws/aws-sdk-go/service/s3/s3iface
-github.com/aws/aws-sdk-go/private/protocol/json/jsonutil
 github.com/aws/aws-sdk-go/service/sts
 github.com/aws/aws-sdk-go/aws/credentials/ec2rolecreds
 github.com/aws/aws-sdk-go/aws/credentials/endpointcreds
 github.com/aws/aws-sdk-go/aws/ec2metadata
 github.com/aws/aws-sdk-go/private/protocol/query
-github.com/aws/aws-sdk-go/private/protocol/xml/xmlutil
 github.com/aws/aws-sdk-go/internal/sdkuri
 github.com/aws/aws-sdk-go/private/protocol/query/queryutil
 # github.com/hashicorp/golang-lru v0.5.1
@@ -58,7 +58,7 @@ github.com/throttled/throttled
 github.com/throttled/throttled/store/memstore
 # github.com/whosonfirst/go-spatialite v0.0.0-20180220171945-cb1d9ed624a8
 github.com/whosonfirst/go-spatialite
-# github.com/whosonfirst/go-whosonfirst-aws v0.1.1
+# github.com/whosonfirst/go-whosonfirst-aws v0.1.3
 github.com/whosonfirst/go-whosonfirst-aws/lambda
 github.com/whosonfirst/go-whosonfirst-aws/s3
 github.com/whosonfirst/go-whosonfirst-aws/session
