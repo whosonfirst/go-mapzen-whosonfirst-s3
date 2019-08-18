@@ -144,7 +144,7 @@ func (s *RemoteSync) SyncFile(fh io.Reader, source string) error {
 	key := fmt.Sprintf("%s#ACL=%s", dest, s.options.ACL)
 	prepped_key := s.conn.PrepareKey(dest)
 	
-	s.options.Logger.Status("PUT %d (%s) AS '%s' AS '%s'", id, rel_path, key, prepped_key)
+	s.options.Logger.Debug("CHECK %d (%s) AS '%s' AS '%s'", id, rel_path, key, prepped_key)
 	
 	if !s.options.Force {
 
