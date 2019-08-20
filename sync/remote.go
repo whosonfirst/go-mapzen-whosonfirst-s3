@@ -136,16 +136,16 @@ func (s *RemoteSync) SyncFile(fh io.Reader, source string) error {
 	if err != nil {
 		return err
 	}
-	
+
 	root := filepath.Dir(rel_path)
 	fname := filepath.Base(source)
 	dest := filepath.Join(root, fname)
 
 	key := fmt.Sprintf("%s#ACL=%s", dest, s.options.ACL)
 	prepped_key := s.conn.PrepareKey(dest)
-	
+
 	s.options.Logger.Debug("CHECK %d (%s) AS '%s' AS '%s'", id, rel_path, key, prepped_key)
-	
+
 	if !s.options.Force {
 
 		body, err := ioutil.ReadAll(fh)
@@ -170,7 +170,7 @@ func (s *RemoteSync) SyncFile(fh io.Reader, source string) error {
 	}
 
 	s.options.Logger.Status("PUT '%s'", key)
-	
+
 	if s.options.Dryrun {
 		s.options.Logger.Status("Running in dryrun mode, so not PUT-ing anything...")
 		return nil
