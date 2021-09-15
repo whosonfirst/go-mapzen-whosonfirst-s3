@@ -14,7 +14,7 @@ import (
 	aws_session "github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
-	"github.com/whosonfirst/go-whosonfirst-mimetypes"
+	"github.com/aaronland/go-mimetypes"
 	"io"
 	"io/ioutil"
 	"log"

@@ -1,13 +1,19 @@
-# github.com/aaronland/go-aws-s3 v0.0.0-20191214173611-795637e709a2
+# github.com/aaronland/go-aws-lambda v0.0.1
+## explicit
+github.com/aaronland/go-aws-lambda
+# github.com/aaronland/go-aws-s3 v0.0.1
 ## explicit
 github.com/aaronland/go-aws-s3
-# github.com/aaronland/go-aws-session v0.0.4
+# github.com/aaronland/go-aws-session v0.0.6
 github.com/aaronland/go-aws-session
 # github.com/aaronland/go-json-query v0.1.0
 github.com/aaronland/go-json-query
+# github.com/aaronland/go-mimetypes v0.0.2
+github.com/aaronland/go-mimetypes
+github.com/aaronland/go-mimetypes/lookup
 # github.com/aaronland/go-roster v0.0.2
 github.com/aaronland/go-roster
-# github.com/aaronland/go-string v0.1.1
+# github.com/aaronland/go-string v0.1.2
 github.com/aaronland/go-string/dsn
 # github.com/aws/aws-lambda-go v1.26.0
 ## explicit
@@ -86,11 +92,6 @@ github.com/tidwall/match
 github.com/tidwall/pretty
 # github.com/whosonfirst/go-ioutil v1.0.0
 github.com/whosonfirst/go-ioutil
-# github.com/whosonfirst/go-whosonfirst-aws v0.1.4
-## explicit
-github.com/whosonfirst/go-whosonfirst-aws/config
-github.com/whosonfirst/go-whosonfirst-aws/lambda
-github.com/whosonfirst/go-whosonfirst-aws/session
 # github.com/whosonfirst/go-whosonfirst-crawl v0.2.1
 github.com/whosonfirst/go-whosonfirst-crawl
 # github.com/whosonfirst/go-whosonfirst-index v0.3.4
@@ -103,9 +104,6 @@ github.com/whosonfirst/go-whosonfirst-iterate/filters
 # github.com/whosonfirst/go-whosonfirst-log v0.1.0
 ## explicit
 github.com/whosonfirst/go-whosonfirst-log
-# github.com/whosonfirst/go-whosonfirst-mimetypes v0.1.0
-github.com/whosonfirst/go-whosonfirst-mimetypes
-github.com/whosonfirst/go-whosonfirst-mimetypes/lookup
 # github.com/whosonfirst/go-whosonfirst-sources v0.1.0
 github.com/whosonfirst/go-whosonfirst-sources
 github.com/whosonfirst/go-whosonfirst-sources/sources

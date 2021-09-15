@@ -1,7 +1,7 @@
 package mimetypes
 
 import (
-	"github.com/whosonfirst/go-whosonfirst-mimetypes/lookup"
+	"github.com/aaronland/go-mimetypes/lookup"
 	"strings"
 )
 

@@ -1,3 +1,5 @@
 # go-aws-s3
 
-Work in progress.
+## Documentation
+
+Documentation is incomplete.

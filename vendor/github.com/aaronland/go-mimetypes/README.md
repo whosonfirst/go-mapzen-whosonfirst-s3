@@ -1,16 +1,6 @@
-# go-whosonfirst-mimetypes
+# go-mimetypes
 
 There are many mime-type lookup tables. This one is ours.
-
-## Install
-
-You will need to have both `Go` (specifically [version 1.12](https://golang.org/dl/) or higher because we're using [Go modules](https://github.com/golang/go/wiki/Modules)) and the `make` programs installed on your computer. Assuming you do just type:
-
-```
-make tools
-```
-
-All of this package's dependencies are bundled with the code in the `vendor` directory.
 
 ## Usage
 
@@ -20,7 +10,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/whosonfirst/go-whosonfirst-mimetypes"
+	"github.com/aaronland/go-mimetypes"
 	"log"
 	"os"
 	"strings"
@@ -56,12 +46,12 @@ When calling `TypesByExtension` you can pass extensions with or without a leadin
 
 ## Tools
 
-### wof-mimetype-lookup
+### lookup
 
 A simple command line tool to lookup mimetypes by extension or vice versa.
 
 ```
-./bin/wof-mimetype-lookup -h
+./bin/lookup -h
 Usage of ./bin/wof-mimetype-lookup:
   -extension
     	Lookup mimetypes by extension
