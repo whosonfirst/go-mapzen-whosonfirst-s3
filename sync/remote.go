@@ -3,7 +3,6 @@ package sync
 import (
 	"bytes"
 	"context"
-	"errors"
 	"fmt"
 	"github.com/aaronland/go-aws-s3"
 	"github.com/whosonfirst/go-whosonfirst-iterate/emitter"
@@ -11,7 +10,6 @@ import (
 	"github.com/whosonfirst/go-whosonfirst-s3/throttle"
 	"github.com/whosonfirst/go-whosonfirst-uri"
 	"io"
-	"io/ioutil"
 	"path/filepath"
 )
 
@@ -47,13 +45,13 @@ func NewRemoteSync(opts RemoteSyncOptions) (Sync, error) {
 	conn, err := s3.NewS3ConnectionWithDSN(dsn)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to create S3 connection, %w", err)
 	}
 
 	th, err := throttle.NewThrottledThrottle(opts.RateLimit)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to create throttle, %w", err)
 	}
 
 	rs := RemoteSync{
@@ -80,17 +78,17 @@ func (s *RemoteSync) SyncFunc() (emitter.EmitterCallbackFunc, error) {
 		path, err := emitter.PathForContext(ctx)
 
 		if err != nil {
-			return err
+			return fmt.Errorf("Failed to derive path for context, %w", err)
 		}
 
 		if path == emitter.STDIN {
-			return errors.New("Can't sync STDIN")
+			return fmt.Errorf("Can't sync STDIN")
 		}
 
 		is_wof, err := uri.IsWOFFile(path)
 
 		if err != nil {
-			return err
+			return fmt.Errorf("Failed to determine whether %s is a WOF file, %w", path, err)
 		}
 
 		if !is_wof {
@@ -100,13 +98,13 @@ func (s *RemoteSync) SyncFunc() (emitter.EmitterCallbackFunc, error) {
 		err = s.throttle.RateLimit()
 
 		if err != nil {
-			return err
+			return fmt.Errorf("Failed to rate limit, %w", err)
 		}
 
-		err = s.SyncFile(fh, path)
+		err = s.SyncFile(ctx, fh, path)
 
 		if err != nil {
-			return err
+			return fmt.Errorf("Failed to sync '%s', %w", path, err)
 		}
 
 		return nil
@@ -115,20 +113,25 @@ func (s *RemoteSync) SyncFunc() (emitter.EmitterCallbackFunc, error) {
 	return cb, nil
 }
 
-func (s *RemoteSync) SyncFile(fh io.Reader, source string) error {
+func (s *RemoteSync) SyncFile(ctx context.Context, fh io.Reader, source string) error {
 
-	ctx := context.Background()
+	select {
+	case <-ctx.Done():
+		return nil
+	default:
+		// pass
+	}
 
 	id, err := uri.IdFromPath(source)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("Failed to derive ID from path '%s', %w", source, err)
 	}
 
 	rel_path, err := uri.Id2RelPath(id)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("Failed to generate relative path for %d, %w", id, err)
 	}
 
 	root := filepath.Dir(rel_path)
@@ -141,16 +144,16 @@ func (s *RemoteSync) SyncFile(fh io.Reader, source string) error {
 
 	if !s.options.Force {
 
-		body, err := ioutil.ReadAll(fh)
+		body, err := io.ReadAll(fh)
 
 		if err != nil {
-			return err
+			return fmt.Errorf("Failed to read %s, %w", rel_path, err)
 		}
 
 		changed, err := s.conn.HasChanged(ctx, dest, body)
 
 		if err != nil {
-			return err
+			return fmt.Errorf("Failed to determined whether '%s' has changed, %w", rel_path, err)
 		}
 
 		s.options.Logger.Status("Has %s changed: %t", dest, changed)
@@ -169,7 +172,7 @@ func (s *RemoteSync) SyncFile(fh io.Reader, source string) error {
 		return nil
 	}
 
-	closer := ioutil.NopCloser(fh)
+	closer := io.NopCloser(fh)
 
 	err = s.conn.Put(ctx, key, closer)
 
@@ -186,5 +189,9 @@ func (s *RemoteSync) SyncFile(fh io.Reader, source string) error {
 		}
 	*/
 
-	return err
+	if err != nil {
+		return fmt.Errorf("Failed to PUT '%s', %w", key, err)
+	}
+
+	return nil
 }
