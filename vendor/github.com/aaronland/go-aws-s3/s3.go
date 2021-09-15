@@ -1,8 +1,5 @@
 package s3
 
-// ideally we could make this conform to some standard "storage" interface
-// but that works hasn't been done (20180120/thisisaaronland)
-
 import (
 	"bytes"
 	"context"
@@ -10,42 +7,29 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"github.com/aaronland/go-aws-session"
 	"github.com/aaronland/go-string/dsn"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	aws_session "github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
-	"github.com/whosonfirst/go-whosonfirst-aws/session"
-	"github.com/whosonfirst/go-whosonfirst-aws/util"
 	"github.com/whosonfirst/go-whosonfirst-mimetypes"
 	"io"
 	"io/ioutil"
 	"log"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"sync/atomic"
 	"time"
 )
 
-func ReadCloserFromBytes(b []byte) (io.ReadCloser, error) {
-	body := bytes.NewReader(b)
-	return ioutil.NopCloser(body), nil
-}
-
 type S3Connection struct {
-	session  *aws_session.Session
 	service  *s3.S3
 	uploader *s3manager.Uploader
 	bucket   string
 	prefix   string
-}
-
-type S3Config struct {
-	Bucket      string
-	Prefix      string
-	Region      string
-	Credentials string // see notes below
 }
 
 type S3ListOptions struct {
@@ -56,16 +40,22 @@ type S3ListOptions struct {
 	// Logger log.Logger
 }
 
-// this is a nearly straight clone of the core S3 object and
-// exists so that people don't have to (re) load all of the
-// aws-sdk-go code in their packages (20180801/thisisaaronland)
-
 type S3Object struct {
-	KeyRaw       string // what aws-sdk-go returns
-	Key          string // KeyRaw but with S3Connection.prefix removed
-	Size         int64
-	LastModified time.Time
-	ETag         string
+	KeyRaw       string    `json:"key_raw"` // what aws-sdk-go returns
+	Key          string    `json:"key"`     // KeyRaw but with S3Connection.prefix removed
+	Size         int64     `json:"size"`
+	LastModified time.Time `json:"lastmodified"`
+	ETag         string    `json:"etag"`
+}
+
+func (obj *S3Object) String() string {
+
+	return strings.Join([]string{
+		obj.Key,
+		strconv.FormatInt(obj.Size, 10),
+		obj.LastModified.Format(time.RFC3339),
+		obj.ETag,
+	}, "\t")
 }
 
 type S3ListCallback func(*S3Object) error
@@ -81,76 +71,41 @@ func DefaultS3ListOptions() *S3ListOptions {
 	return &opts
 }
 
-func ValidS3Credentials() []string {
+func NewS3ConnectionWithDSN(dsn_str string) (*S3Connection, error) {
 
-	valid := []string{
-		"env:",
-		"iam:",
-		"{PROFILE}",
-		"{PATH}:{PROFILE}",
-	}
-
-	return valid
-}
-
-func ValidS3CredentialsString() string {
-
-	valid := ValidS3Credentials()
-	return fmt.Sprintf("Valid credential flags are: %s", strings.Join(valid, ", "))
-}
-
-func NewS3ConfigFromString(str_dsn string) (*S3Config, error) {
-
-	dsn_map, err := dsn.StringToDSNWithKeys(str_dsn, "bucket", "region", "credentials")
+	sess, err := session.NewSessionWithDSN(dsn_str)
 
 	if err != nil {
 		return nil, err
 	}
 
-	bucket, _ := dsn_map["bucket"]
-	region, _ := dsn_map["region"]
-	credentials, _ := dsn_map["credentials"]
-
-	config := S3Config{
-		Bucket:      bucket,
-		Region:      region,
-		Credentials: credentials,
-	}
-
-	prefix, ok := dsn_map["prefix"]
-
-	if ok {
-		config.Prefix = prefix
-	}
-
-	return &config, nil
-}
-
-func NewS3Connection(s3cfg *S3Config) (*S3Connection, error) {
-
-	if s3cfg.Bucket == "" {
-		return nil, errors.New("Invalid S3 bucket name")
-	}
-
-	// https://docs.aws.amazon.com/sdk-for-go/v1/developerguide/configuring-sdk.html
-	// https://docs.aws.amazon.com/sdk-for-go/api/service/s3/
-
-	sess, err := session.NewSessionWithCredentials(s3cfg.Credentials, s3cfg.Region)
+	dsn_map, err := dsn.StringToDSN(dsn_str)
 
 	if err != nil {
 		return nil, err
 	}
+
+	bucket, ok := dsn_map["bucket"]
+
+	if !ok {
+		return nil, errors.New("Missing bucket")
+	}
+
+	prefix, _ := dsn_map["prefix"]
+
+	return NewS3Connection(sess, bucket, prefix)
+}
+
+func NewS3Connection(sess *aws_session.Session, bucket string, prefix string) (*S3Connection, error) {
 
 	service := s3.New(sess)
-
 	uploader := s3manager.NewUploader(sess)
 
 	c := S3Connection{
-		session:  sess,
 		service:  service,
 		uploader: uploader,
-		bucket:   s3cfg.Bucket,
-		prefix:   s3cfg.Prefix,
+		bucket:   bucket,
+		prefix:   prefix,
 	}
 
 	return &c, nil
@@ -158,7 +113,7 @@ func NewS3Connection(s3cfg *S3Config) (*S3Connection, error) {
 
 func (conn *S3Connection) URI(key string) string {
 
-	key = conn.PrepareKey(key)
+	key = conn.prepareKey(key)
 
 	if conn.prefix != "" {
 		key = fmt.Sprintf("%s/%s", conn.prefix, key)
@@ -167,18 +122,27 @@ func (conn *S3Connection) URI(key string) string {
 	return fmt.Sprintf("https://s3.amazonaws.com/%s/%s", conn.bucket, key)
 }
 
+func (conn *S3Connection) Exists(ctx context.Context, key string) (bool, error) {
+
+	_, err := conn.Head(ctx, key)
+
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
 // https://tools.ietf.org/html/rfc7231#section-4.3.2
 // https://docs.aws.amazon.com/AmazonS3/latest/API/RESTObjectHEAD.html
 
-func (conn *S3Connection) Head(key string) (*s3.HeadObjectOutput, error) {
+func (conn *S3Connection) Head(ctx context.Context, key string) (*s3.HeadObjectOutput, error) {
 
-	prepped_key := conn.PrepareKey(key)
-
-	// log.Printf("S3 HEAD '%s' -> '%s'\n", key, prepped_key)
+	key = conn.prepareKey(key)
 
 	params := &s3.HeadObjectInput{
 		Bucket: aws.String(conn.bucket),
-		Key:    aws.String(prepped_key),
+		Key:    aws.String(key),
 	}
 
 	rsp, err := conn.service.HeadObject(params)
@@ -190,9 +154,9 @@ func (conn *S3Connection) Head(key string) (*s3.HeadObjectOutput, error) {
 	return rsp, nil
 }
 
-func (conn *S3Connection) Get(key string) (io.ReadCloser, error) {
+func (conn *S3Connection) Get(ctx context.Context, key string) (io.ReadCloser, error) {
 
-	key = conn.PrepareKey(key)
+	key = conn.prepareKey(key)
 
 	params := &s3.GetObjectInput{
 		Bucket: aws.String(conn.bucket),
@@ -208,9 +172,9 @@ func (conn *S3Connection) Get(key string) (io.ReadCloser, error) {
 	return rsp.Body, nil
 }
 
-func (conn *S3Connection) GetBytes(key string) ([]byte, error) {
+func (conn *S3Connection) GetBytes(ctx context.Context, key string) ([]byte, error) {
 
-	fh, err := conn.Get(key)
+	fh, err := conn.Get(ctx, key)
 
 	if err != nil {
 		return nil, err
@@ -218,13 +182,10 @@ func (conn *S3Connection) GetBytes(key string) ([]byte, error) {
 
 	defer fh.Close()
 
-	buf := new(bytes.Buffer)
-	buf.ReadFrom(fh)
-
-	return buf.Bytes(), nil
+	return ioutil.ReadAll(fh)
 }
 
-func (conn *S3Connection) Put(key string, fh io.ReadCloser, args ...interface{}) error {
+func (conn *S3Connection) Put(ctx context.Context, key string, fh io.ReadCloser, args ...interface{}) error {
 
 	// file under known knowns: AWS expects a ReadSeeker for performance
 	// and memory reasons but we're passing around ReadClosers  - see also:
@@ -235,20 +196,18 @@ func (conn *S3Connection) Put(key string, fh io.ReadCloser, args ...interface{})
 
 	parsed := strings.Split(key, "#")
 
-	parsed_key := parsed[0]
-	prepped_key := conn.PrepareKey(parsed_key)
-
-	// log.Printf("S3 PUT '%s' -> '%s' -> '%s'\n", key, parsed_key, prepped_key)
+	key = parsed[0]
+	key = conn.prepareKey(key)
 
 	// https://docs.aws.amazon.com/sdk-for-go/api/service/s3/s3manager/#UploadInput
 
 	params := s3manager.UploadInput{
 		Bucket: aws.String(conn.bucket),
-		Key:    aws.String(prepped_key),
+		Key:    aws.String(key),
 		Body:   fh,
 	}
 
-	ext := filepath.Ext(prepped_key)
+	ext := filepath.Ext(key)
 	types := mimetypes.TypesByExtension(ext)
 
 	if len(types) == 1 {
@@ -288,20 +247,17 @@ func (conn *S3Connection) Put(key string, fh io.ReadCloser, args ...interface{})
 	return err
 }
 
-func (conn *S3Connection) PutBytes(key string, body []byte) error {
+func (conn *S3Connection) PutBytes(ctx context.Context, key string, body []byte) error {
 
-	fh, err := ReadCloserFromBytes(body)
+	br := bytes.NewReader(body)
+	fh := ioutil.NopCloser(br)
 
-	if err != nil {
-		return err
-	}
-
-	return conn.Put(key, fh)
+	return conn.Put(ctx, key, fh)
 }
 
-func (conn *S3Connection) Delete(key string) error {
+func (conn *S3Connection) Delete(ctx context.Context, key string) error {
 
-	key = conn.PrepareKey(key)
+	key = conn.prepareKey(key)
 
 	params := &s3.DeleteObjectInput{
 		Bucket: aws.String(conn.bucket),
@@ -309,15 +265,69 @@ func (conn *S3Connection) Delete(key string) error {
 	}
 
 	_, err := conn.service.DeleteObject(params)
+	return err
+}
 
-	if err != nil {
-		return err
+func (conn *S3Connection) DeleteKeysIfExists(ctx context.Context, keys ...string) error {
+
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	done_ch := make(chan bool)
+	err_ch := make(chan error)
+
+	remaining := len(keys)
+
+	for _, key := range keys {
+
+		go func(ctx context.Context, key string) {
+
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				// pass
+			}
+
+			defer func() {
+				done_ch <- true
+			}()
+
+			ok, err := conn.Exists(ctx, key)
+
+			if err != nil {
+				err_ch <- err
+				return
+			}
+
+			if !ok {
+				return
+			}
+
+			err = conn.Delete(ctx, key)
+
+			if err != nil {
+				err_ch <- err
+			}
+
+		}(ctx, key)
+	}
+
+	for remaining > 0 {
+		select {
+		case <-done_ch:
+			remaining -= 1
+		case err := <-err_ch:
+			return err
+		default:
+			// pass
+		}
 	}
 
 	return nil
 }
 
-func (conn *S3Connection) DeleteRecursive(path string) error {
+func (conn *S3Connection) DeleteRecursive(ctx context.Context, path string) error {
 
 	opts := DefaultS3ListOptions()
 	// opts.Timings = *timings
@@ -325,36 +335,50 @@ func (conn *S3Connection) DeleteRecursive(path string) error {
 
 	cb := func(obj *S3Object) error {
 
+		select {
+		case <-ctx.Done():
+			return nil
+		default:
+			// pass
+		}
+
 		if obj.Key == path {
 			return nil
 		}
 
-		return conn.DeleteRecursive(obj.Key)
+		return conn.DeleteRecursive(ctx, obj.Key)
 	}
 
-	err := conn.List(cb, opts)
+	err := conn.List(ctx, cb, opts)
 
 	if err != nil {
 		return err
 	}
 
-	return conn.Delete(path)
+	return conn.Delete(ctx, path)
 }
 
-func (conn *S3Connection) SetACLForBucket(acl string, opts *S3ListOptions) error {
+func (conn *S3Connection) SetACLForBucket(ctx context.Context, acl string, opts *S3ListOptions) error {
 
 	cb := func(obj *S3Object) error {
 
-		err := conn.SetACLForKey(obj.Key, acl)
+		select {
+		case <-ctx.Done():
+			return nil
+		default:
+			// pass
+		}
+
+		err := conn.SetACLForKey(ctx, obj.Key, acl)
 		return err
 	}
 
-	return conn.List(cb, opts)
+	return conn.List(ctx, cb, opts)
 }
 
-func (conn *S3Connection) SetACLForKey(key string, acl string) error {
+func (conn *S3Connection) SetACLForKey(ctx context.Context, key string, acl string) error {
 
-	key = conn.PrepareKey(key)
+	key = conn.prepareKey(key)
 
 	params := &s3.PutObjectAclInput{
 		ACL:    aws.String(acl),
@@ -366,7 +390,7 @@ func (conn *S3Connection) SetACLForKey(key string, acl string) error {
 	return err
 }
 
-func (conn *S3Connection) List(cb S3ListCallback, opts *S3ListOptions) error {
+func (conn *S3Connection) List(ctx context.Context, cb S3ListCallback, opts *S3ListOptions) error {
 
 	count_pages := int64(0)
 	count_items := int64(0)
@@ -424,7 +448,7 @@ func (conn *S3Connection) List(cb S3ListCallback, opts *S3ListOptions) error {
 
 		atomic.AddInt64(&count_pages, 1)
 
-		ctx, cancel := context.WithCancel(context.Background())
+		ctx, cancel := context.WithCancel(ctx)
 		defer cancel()
 
 		done_ch := make(chan bool)
@@ -449,11 +473,15 @@ func (conn *S3Connection) List(cb S3ListCallback, opts *S3ListOptions) error {
 				}
 			}
 
+			etag := *aws_obj.ETag
+			etag = strings.TrimLeft(etag, "\"")
+			etag = strings.TrimRight(etag, "\"")
+
 			obj := &S3Object{
 				KeyRaw:       key_raw,
 				Key:          key,
 				Size:         *aws_obj.Size,
-				ETag:         *aws_obj.ETag,
+				ETag:         etag,
 				LastModified: *aws_obj.LastModified,
 			}
 
@@ -492,12 +520,10 @@ func (conn *S3Connection) List(cb S3ListCallback, opts *S3ListOptions) error {
 			case e := <-err_ch:
 				log.Println(e)
 
-				/*
-					if opts.Strict {
-						ok = false
-						break
-					}
-				*/
+				if opts.Strict {
+					ok = false
+					break
+				}
 
 			default:
 				// pass
@@ -509,7 +535,7 @@ func (conn *S3Connection) List(cb S3ListCallback, opts *S3ListOptions) error {
 
 	// https://docs.aws.amazon.com/sdk-for-go/api/service/s3/#example_S3_ListObjects_shared00
 
-	err := conn.service.ListObjectsPages(params, aws_cb)
+	err := conn.service.ListObjectsPagesWithContext(ctx, params, aws_cb)
 
 	if err != nil {
 		return err
@@ -518,12 +544,12 @@ func (conn *S3Connection) List(cb S3ListCallback, opts *S3ListOptions) error {
 	return nil
 }
 
-func (conn *S3Connection) HasChanged(key string, local []byte) (bool, error) {
+func (conn *S3Connection) HasChanged(ctx context.Context, key string, local []byte) (bool, error) {
 
 	// https://docs.aws.amazon.com/sdk-for-go/api/service/s3/#HeadObjectInput
 	// https://docs.aws.amazon.com/sdk-for-go/api/service/s3/#HeadObjectOutput
 
-	head, err := conn.Head(key)
+	head, err := conn.Head(ctx, key)
 
 	if err != nil {
 
@@ -553,19 +579,11 @@ func (conn *S3Connection) HasChanged(key string, local []byte) (bool, error) {
 	return true, nil
 }
 
-func IsNotFound(err error) bool {
-	return util.IsAWSErrorWithCode(err, s3.ErrCodeNoSuchKey)
-}
+func (conn *S3Connection) prepareKey(key string) string {
 
-func (conn *S3Connection) PrepareKey(key string) string {
-
-	if strings.TrimSpace(conn.prefix) == "" {
-		// log.Printf("S3 PREP KEY '%s' -> '%s'\n", key, key)
+	if conn.prefix == "" {
 		return key
 	}
 
-	prepped_key := filepath.Join(conn.prefix, key)
-	// log.Printf("S3 PREP KEY '%s' -> '%s'\n", key, prepped_key)
-
-	return prepped_key
+	return filepath.Join(conn.prefix, key)
 }

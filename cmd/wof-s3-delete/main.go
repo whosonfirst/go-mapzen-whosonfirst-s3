@@ -15,7 +15,7 @@ import (
 	go_lambda "github.com/aws/aws-lambda-go/lambda"
 	aws_lambda "github.com/aws/aws-sdk-go/service/lambda"
 	"github.com/whosonfirst/go-whosonfirst-aws/lambda"
-	"github.com/whosonfirst/go-whosonfirst-aws/s3"
+	"github.com/aaronland/go-aws-s3"
 	"github.com/whosonfirst/go-whosonfirst-uri"
 	"log"
 	"os"

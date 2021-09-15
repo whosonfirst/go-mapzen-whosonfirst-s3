@@ -1,3 +1,8 @@
+# github.com/aaronland/go-aws-s3 v0.0.0-20191214173611-795637e709a2
+## explicit
+github.com/aaronland/go-aws-s3
+# github.com/aaronland/go-aws-session v0.0.4
+github.com/aaronland/go-aws-session
 # github.com/aaronland/go-json-query v0.1.0
 github.com/aaronland/go-json-query
 # github.com/aaronland/go-roster v0.0.2
@@ -85,9 +90,7 @@ github.com/whosonfirst/go-ioutil
 ## explicit
 github.com/whosonfirst/go-whosonfirst-aws/config
 github.com/whosonfirst/go-whosonfirst-aws/lambda
-github.com/whosonfirst/go-whosonfirst-aws/s3
 github.com/whosonfirst/go-whosonfirst-aws/session
-github.com/whosonfirst/go-whosonfirst-aws/util
 # github.com/whosonfirst/go-whosonfirst-crawl v0.2.1
 github.com/whosonfirst/go-whosonfirst-crawl
 # github.com/whosonfirst/go-whosonfirst-index v0.3.4

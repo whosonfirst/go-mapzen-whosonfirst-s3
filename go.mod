@@ -1,6 +1,7 @@
 module github.com/whosonfirst/go-whosonfirst-s3
 
 require (
+	github.com/aaronland/go-aws-s3 v0.0.0-20191214173611-795637e709a2
 	github.com/aws/aws-lambda-go v1.26.0
 	github.com/aws/aws-sdk-go v1.40.43
 	github.com/throttled/throttled/v2 v2.9.0

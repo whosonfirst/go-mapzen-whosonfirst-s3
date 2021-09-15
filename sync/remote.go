@@ -5,7 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/whosonfirst/go-whosonfirst-aws/s3"
+	"github.com/aaronland/go-aws-s3"
 	"github.com/whosonfirst/go-whosonfirst-iterate/emitter"	
 	"github.com/whosonfirst/go-whosonfirst-log"
 	"github.com/whosonfirst/go-whosonfirst-s3/throttle"
