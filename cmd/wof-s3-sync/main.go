@@ -1,24 +1,21 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
-	"github.com/whosonfirst/go-whosonfirst-index"
+	"github.com/whosonfirst/go-whosonfirst-iterate/iterator"
 	"github.com/whosonfirst/go-whosonfirst-log"
 	"github.com/whosonfirst/go-whosonfirst-s3/sync"
 	"io"
 	"os"
-	"strings"
 	"sync/atomic"
 	"time"
 )
 
 func main() {
 
-	valid_modes := strings.Join(index.Modes(), ",")
-	desc_modes := fmt.Sprintf("The mode to use for reading local data. Valid modes are: %s.", valid_modes)
-
-	var mode = flag.String("mode", "repo", desc_modes)
+	var mode = flag.String("mode", "repo://", "...")
 	var region = flag.String("region", "us-east-1", "The region your S3 bucket lives in.")
 	var bucket = flag.String("bucket", "data.whosonfirst.org", "The name of your S3 bucket.")
 	var prefix = flag.String("prefix", "", "The prefix (or subdirectory) for syncing data")
@@ -31,6 +28,8 @@ func main() {
 	var verbose = flag.Bool("verbose", false, "Be chatty.")
 
 	flag.Parse()
+
+	ctx := context.Background()
 
 	logger := log.SimpleWOFLogger()
 
@@ -61,16 +60,16 @@ func main() {
 		logger.Fatal("Failed to create new sync because %s", err)
 	}
 
-	sync_cb, err := sync.SyncFunc()
+	iter_cb, err := sync.SyncFunc()
 
 	if err != nil {
 		logger.Fatal("Failed to create sync callback because %s", err)
 	}
 
-	idx, err := index.NewIndexer(*mode, sync_cb)
+	iter, err := iterator.NewIterator(ctx, *mode, iter_cb)
 
 	if err != nil {
-		logger.Fatal("Failed to create indexer because %s", err)
+		logger.Fatal("Failed to create iterator because %s", err)
 	}
 
 	done_ch := make(chan bool)
@@ -82,7 +81,7 @@ func main() {
 			case <-done_ch:
 				break
 			case <-time.After(1 * time.Minute):
-				i := atomic.LoadInt64(&idx.Indexed) // please just make this part of go-whosonfirst-index
+				i := atomic.LoadInt64(&iter.Seen) // please just make this part of go-whosonfirst-index
 				logger.Status("%d indexed\n", i)
 			}
 		}
@@ -90,27 +89,15 @@ func main() {
 
 	t1 := time.Now()
 
-	for _, path := range flag.Args() {
-
-		ta := time.Now()
-
-		err := idx.IndexPath(path)
-
-		if err != nil {
-			logger.Warning("Failed to index %s because %s", path, err)
-			break
-		}
-
-		tb := time.Since(ta)
-		logger.Status("time to index %s : %v\n", path, tb)
-	}
+	uris := flag.Args()
+	err = iter.IterateURIs(ctx, uris...)
 
 	// please handle retries here
 
 	done_ch <- true
 
 	t2 := time.Since(t1)
-	i := atomic.LoadInt64(&idx.Indexed) // see above
+	i := atomic.LoadInt64(&iter.Seen) // see above
 
 	logger.Status("time to index %d documents : %v\n", i, t2)
 }

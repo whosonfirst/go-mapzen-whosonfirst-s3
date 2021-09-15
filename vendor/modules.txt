@@ -96,11 +96,11 @@ github.com/whosonfirst/go-ioutil
 github.com/whosonfirst/go-whosonfirst-crawl
 # github.com/whosonfirst/go-whosonfirst-index v0.3.4
 ## explicit
-github.com/whosonfirst/go-whosonfirst-index
 # github.com/whosonfirst/go-whosonfirst-iterate v1.2.0
 ## explicit
 github.com/whosonfirst/go-whosonfirst-iterate/emitter
 github.com/whosonfirst/go-whosonfirst-iterate/filters
+github.com/whosonfirst/go-whosonfirst-iterate/iterator
 # github.com/whosonfirst/go-whosonfirst-log v0.1.0
 ## explicit
 github.com/whosonfirst/go-whosonfirst-log

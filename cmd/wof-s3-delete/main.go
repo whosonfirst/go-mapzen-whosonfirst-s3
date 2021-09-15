@@ -12,10 +12,10 @@ import (
 	"context"
 	"errors"
 	"flag"
-	go_lambda "github.com/aws/aws-lambda-go/lambda"
-	aws_lambda "github.com/aws/aws-sdk-go/service/lambda"
 	"github.com/aaronland/go-aws-lambda"
 	"github.com/aaronland/go-aws-s3"
+	go_lambda "github.com/aws/aws-lambda-go/lambda"
+	aws_lambda "github.com/aws/aws-sdk-go/service/lambda"
 	"github.com/whosonfirst/go-whosonfirst-uri"
 	"log"
 	"os"
@@ -58,13 +58,7 @@ func delete(ctx context.Context, opts DeleteOptions) error {
 		return errors.New("Invalid ID")
 	}
 
-	cfg, err := s3.NewS3ConfigFromString(opts.DSN)
-
-	if err != nil {
-		return err
-	}
-
-	conn, err := s3.NewS3Connection(cfg)
+	conn, err := s3.NewS3ConnectionWithDSN(opts.DSN)
 
 	// add hooks for alternative paths (fullname, etc.)
 
@@ -79,7 +73,7 @@ func delete(ctx context.Context, opts DeleteOptions) error {
 		return nil
 	}
 
-	return conn.DeleteRecursive(path)
+	return conn.DeleteRecursive(ctx, path)
 }
 
 func main() {

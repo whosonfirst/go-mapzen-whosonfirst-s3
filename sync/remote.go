@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/aaronland/go-aws-s3"
-	"github.com/whosonfirst/go-whosonfirst-iterate/emitter"	
+	"github.com/whosonfirst/go-whosonfirst-iterate/emitter"
 	"github.com/whosonfirst/go-whosonfirst-log"
 	"github.com/whosonfirst/go-whosonfirst-s3/throttle"
 	"github.com/whosonfirst/go-whosonfirst-uri"
@@ -31,7 +31,6 @@ type RemoteSyncOptions struct {
 
 type RemoteSync struct {
 	Sync
-	config   *s3.S3Config
 	conn     *s3.S3Connection
 	options  RemoteSyncOptions
 	throttle throttle.Throttle
@@ -45,13 +44,7 @@ func NewRemoteSync(opts RemoteSyncOptions) (Sync, error) {
 		dsn = fmt.Sprintf("bucket=%s prefix=%s region=%s credentials=%s", opts.Bucket, opts.Prefix, opts.Region, opts.Credentials)
 	}
 
-	cfg, err := s3.NewS3ConfigFromString(dsn)
-
-	if err != nil {
-		return nil, err
-	}
-
-	conn, err := s3.NewS3Connection(cfg)
+	conn, err := s3.NewS3ConnectionWithDSN(dsn)
 
 	if err != nil {
 		return nil, err
@@ -65,7 +58,6 @@ func NewRemoteSync(opts RemoteSyncOptions) (Sync, error) {
 
 	rs := RemoteSync{
 		options:  opts,
-		config:   cfg,
 		conn:     conn,
 		throttle: th,
 	}
@@ -125,6 +117,8 @@ func (s *RemoteSync) SyncFunc() (emitter.EmitterCallbackFunc, error) {
 
 func (s *RemoteSync) SyncFile(fh io.Reader, source string) error {
 
+	ctx := context.Background()
+
 	id, err := uri.IdFromPath(source)
 
 	if err != nil {
@@ -142,9 +136,8 @@ func (s *RemoteSync) SyncFile(fh io.Reader, source string) error {
 	dest := filepath.Join(root, fname)
 
 	key := fmt.Sprintf("%s#ACL=%s", dest, s.options.ACL)
-	prepped_key := s.conn.PrepareKey(dest)
 
-	s.options.Logger.Debug("CHECK %d (%s) AS '%s' AS '%s'", id, rel_path, key, prepped_key)
+	s.options.Logger.Debug("CHECK %d (%s) AS '%s'", id, rel_path, key)
 
 	if !s.options.Force {
 
@@ -154,7 +147,7 @@ func (s *RemoteSync) SyncFile(fh io.Reader, source string) error {
 			return err
 		}
 
-		changed, err := s.conn.HasChanged(dest, body)
+		changed, err := s.conn.HasChanged(ctx, dest, body)
 
 		if err != nil {
 			return err
@@ -178,7 +171,7 @@ func (s *RemoteSync) SyncFile(fh io.Reader, source string) error {
 
 	closer := ioutil.NopCloser(fh)
 
-	err = s.conn.Put(key, closer)
+	err = s.conn.Put(ctx, key, closer)
 
 	// s3/utils.IsAWSErrorWithCode
 
