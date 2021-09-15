@@ -15,7 +15,6 @@ import (
 	"github.com/aaronland/go-aws-lambda"
 	"github.com/aaronland/go-aws-s3"
 	go_lambda "github.com/aws/aws-lambda-go/lambda"
-	aws_lambda "github.com/aws/aws-sdk-go/service/lambda"
 	"github.com/whosonfirst/go-whosonfirst-uri"
 	"log"
 	"os"
@@ -94,6 +93,8 @@ func main() {
 
 	flag.Parse()
 
+	ctx := context.Background()
+
 	opts := DeleteOptions{
 		DSN:    *s3_dsn,
 		Dryrun: *dryrun,
@@ -146,7 +147,7 @@ func main() {
 
 	if *do_invoke {
 
-		svc, err := lambda.NewLambdaServiceWithDSN(*lambda_dsn)
+		lambda_fn, err := lambda.NewLambdaFunctionWithDSN(*lambda_dsn, *lambda_func, *lambda_type)
 
 		if err != nil {
 			log.Fatal(err)
@@ -164,7 +165,7 @@ func main() {
 
 			wg.Add(1)
 
-			go func(svc *aws_lambda.Lambda, wg *sync.WaitGroup, throttle chan bool, id int64) {
+			go func(lambda_fn *lambda.LambdaFunction, wg *sync.WaitGroup, throttle chan bool, id int64) {
 
 				<-throttle
 
@@ -175,13 +176,13 @@ func main() {
 
 				opts.ID = id
 
-				_, err := lambda.InvokeFunction(svc, *lambda_func, *lambda_type, opts)
+				_, err := lambda_fn.Invoke(ctx, id)
 
 				if err != nil {
 					log.Println("ERROR", id, err)
 				}
 
-			}(svc, wg, throttle, id)
+			}(lambda_fn, wg, throttle, id)
 		}
 
 		wg.Wait()
