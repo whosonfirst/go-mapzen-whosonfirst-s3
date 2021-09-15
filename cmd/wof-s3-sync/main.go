@@ -20,7 +20,7 @@ func main() {
 	var bucket = flag.String("bucket", "data.whosonfirst.org", "The name of your S3 bucket.")
 	var prefix = flag.String("prefix", "", "The prefix (or subdirectory) for syncing data")
 	var credentials = flag.String("credentials", "iam:", "What kind of AWS credentials to use for syncing data.")
-	var dsn = flag.String("dsn", "", "A valid go-whosonfirst-aws DSN string.")
+	var dsn = flag.String("dsn", "", "A valid aaronland/go-aws-s3 DSN string.")
 	var acl = flag.String("acl", "public-read", "A valid AWS S3 ACL string for permissions.")
 	var ratelimit = flag.Int("rate-limit", 100000, "The maximum number or concurrent processes.")
 	var dryrun = flag.Bool("dryrun", false, "Go through the motions but don't actually sync anything.")
