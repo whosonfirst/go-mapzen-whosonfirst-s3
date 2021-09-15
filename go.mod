@@ -6,6 +6,7 @@ require (
 	github.com/throttled/throttled/v2 v2.9.0
 	github.com/whosonfirst/go-whosonfirst-aws v0.1.4
 	github.com/whosonfirst/go-whosonfirst-index v0.3.4
+	github.com/whosonfirst/go-whosonfirst-iterate v1.2.0
 	github.com/whosonfirst/go-whosonfirst-log v0.1.0
 	github.com/whosonfirst/go-whosonfirst-uri v1.1.0
 )

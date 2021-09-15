@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/whosonfirst/go-whosonfirst-aws/s3"
-	"github.com/whosonfirst/go-whosonfirst-index"
+	"github.com/whosonfirst/go-whosonfirst-iterate/emitter"	
 	"github.com/whosonfirst/go-whosonfirst-log"
 	"github.com/whosonfirst/go-whosonfirst-s3/throttle"
 	"github.com/whosonfirst/go-whosonfirst-uri"
@@ -73,9 +73,9 @@ func NewRemoteSync(opts RemoteSyncOptions) (Sync, error) {
 	return &rs, nil
 }
 
-func (s *RemoteSync) SyncFunc() (index.IndexerFunc, error) {
+func (s *RemoteSync) SyncFunc() (emitter.EmitterCallbackFunc, error) {
 
-	f := func(fh io.Reader, ctx context.Context, args ...interface{}) error {
+	cb := func(ctx context.Context, fh io.ReadSeeker, args ...interface{}) error {
 
 		select {
 
@@ -85,13 +85,13 @@ func (s *RemoteSync) SyncFunc() (index.IndexerFunc, error) {
 			// pass
 		}
 
-		path, err := index.PathForContext(ctx)
+		path, err := emitter.PathForContext(ctx)
 
 		if err != nil {
 			return err
 		}
 
-		if path == index.STDIN {
+		if path == emitter.STDIN {
 			return errors.New("Can't sync STDIN")
 		}
 
@@ -120,7 +120,7 @@ func (s *RemoteSync) SyncFunc() (index.IndexerFunc, error) {
 		return nil
 	}
 
-	return f, nil
+	return cb, nil
 }
 
 func (s *RemoteSync) SyncFile(fh io.Reader, source string) error {

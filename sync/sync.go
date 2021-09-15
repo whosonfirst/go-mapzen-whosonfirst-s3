@@ -1,11 +1,11 @@
 package sync
 
 import (
-	"github.com/whosonfirst/go-whosonfirst-index"
+	"github.com/whosonfirst/go-whosonfirst-iterate/emitter"
 	"io"
 )
 
 type Sync interface {
-	SyncFunc() (index.IndexerFunc, error)
+	SyncFunc() (emitter.EmitterCallbackFunc, error)
 	SyncFile(io.Reader, string) error
 }
