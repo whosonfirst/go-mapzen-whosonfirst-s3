@@ -2,6 +2,12 @@
 
 Go package for working with Who's On First data and S3 buckets
 
+## Important
+
+* This package has been superseded by [whosonfirst/go-whosonfirst-blob](https://github.com/whosonfirst/go-whosonfirst-blob) and is no longer maintained.
+* There is only local -> remote (S3) synchronization at the moment. See above.
+* There is no retry (for failed uploads) code yet.
+
 ## Install
 
 You will need to have both `Go` (specifically version [1.12](https://golang.org/dl/) or higher) and the `make` programs installed on your computer. Assuming you do just type:
@@ -11,11 +17,6 @@ make tools
 ```
 
 All of this package's dependencies are bundled with the code in the `vendor` directory.
-
-## Important
-
-2. There is only local -> remote (S3) synchronization at the moment. See above.
-3. There is no retry (for failed uploads) code yet.
 
 ## Usage
 
